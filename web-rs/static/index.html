@@ -1,0 +1,891 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Precision Shutter Diagnostics Interface</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <style type="text/css">
+        body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; color: #000000; margin: 0; padding: 0; }
+        
+        .page-container {
+            display: flex;
+            min-height: 100vh; 
+        }
+
+        .config-panel {
+            width: 200px; 
+            background-color: #E0E0E0; 
+            padding: 15px;
+            border-right: 2px solid #808080;
+            font-size: 10pt;
+            box-sizing: border-box;
+            transition: width 0.3s ease, padding-left 0.3s ease, padding-right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+        .config-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px; 
+            width: 100%;
+            transition: margin-bottom 0.3s ease;
+        }
+        .config-panel h3 { 
+            margin-top: 0;
+            margin-bottom: 0; 
+            color: #000080;
+            border-bottom: 1px solid #A0A0A0;
+            padding-bottom: 8px;
+            font-size: 12pt;
+            flex-grow: 1; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            transition: opacity 0.2s ease, max-width 0.3s ease, padding-bottom 0.3s ease, border-bottom-width 0.3s ease, margin 0.3s ease, flex-grow 0.3s ease;
+        }
+        #toggleConfigButton {
+            background: #A0A0A0;
+            color: white;
+            border: 1px outset #808080;
+            padding: 2px 6px;
+            font-size: 12pt;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            line-height: 1;
+            flex-shrink: 0; 
+        }
+        #toggleConfigButton:hover {
+            background: #808080;
+        }
+
+        #configPanelContent {
+            transition: opacity 0.2s ease 0.1s, max-height 0.3s ease; 
+            opacity: 1;
+            overflow: hidden;
+            max-height: 500px; /* Adjusted for new element */
+        }
+        #configPanelContent div { 
+            margin-bottom: 12px;
+        }
+        #configPanelContent label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #333333;
+        }
+        #configPanelContent input[type="number"], 
+        #configPanelContent select { /* Added select styling */
+            width: calc(100% - 12px); 
+            padding: 5px;
+            border: 1px inset #808080;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 10pt;
+            box-sizing: border-box;
+            background-color: #F0F0F0;
+        }
+        .config-panel .data-value { 
+             font-family: "Courier New", Courier, monospace;
+             font-weight: bold;
+             color: #0000FF;
+        }
+        .config-panel .error-message { 
+            color: #FF0000 !important; 
+            font-weight: bold;
+        }
+
+        /* Collapsed State */
+        .config-panel.collapsed {
+            width: 45px; 
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        .config-panel.collapsed .config-header-container {
+            margin-bottom: 0;
+            justify-content: center; 
+        }
+        .config-panel.collapsed h3 {
+            opacity: 0;
+            max-width: 0;
+            padding-bottom: 0;
+            border-bottom-width: 0;
+            margin: 0 !important; 
+            flex-grow: 0; 
+            pointer-events: none;
+        }
+        .config-panel.collapsed #toggleConfigButton {
+            margin-left: 0; 
+        }
+        .config-panel.collapsed #configPanelContent {
+            opacity: 0;
+            max-height: 0;
+            pointer-events: none;
+            visibility: hidden; 
+        }
+
+        .main-content {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column; 
+        }
+
+        table { /* Default for main table */
+            border: 2px outset #808080;
+            border-collapse: collapse;
+            background-color: #F0F0F0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 10px;
+            width: 95%;
+            max-width: 800px;
+            table-layout: fixed; 
+        }
+        th, td { /* Default for main table */
+            border: 1px inset #A0A0A0;
+            padding: 5px;
+            font-size: 11pt;
+            vertical-align: middle;
+            overflow: hidden; 
+        }
+        th { background-color: #A0A0A0; color: #FFFFFF; font-weight: bold; text-align: center; }
+        td.metric-label { font-weight: bold; text-align: left; }
+        caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
+        .header { background-color: #000080; color: #FFFF00; padding: 10px; text-align: center; font-size: 18pt; font-weight: bold; border-bottom: 3px double #000000; }
+        .footer { text-align: center; font-size: 9pt; margin-top: 20px; color: #505050; padding-bottom: 10px; }
+        .data-value { font-family: "Courier New", Courier, monospace; font-weight: bold; color: #0000FF; text-align: right; }
+        .status-bar {
+            background-color: #A0A0A0;
+            color: #000000;
+            padding: 3px 10px;
+            font-size: 10pt;
+            border-top: 1px solid #FFFFFF;
+            border-bottom: 1px solid #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+        }
+        .error-message { color: #FF0000; font-weight: bold; }
+        .sensor3-col { border-right: 3px solid #707070 !important; }
+        .compare-value {
+            font-family: "Courier New", Courier, monospace;
+            text-align: center;
+            font-size: 10pt;
+            white-space: nowrap; 
+            overflow: hidden;      
+            text-overflow: ellipsis; 
+        }
+        .compare-header { font-size: 9pt; }
+        .section-header { background-color: #B0B0B0; color: #000000; font-weight: bold; text-align: center; }
+        .section-header select { 
+            font-family: "Times New Roman", Times, serif;
+            font-size: 9pt;
+            margin-left: 10px;
+            border: 1px inset #808080; 
+            background-color: #F0F0F0; 
+            padding: 1px; 
+        }
+        #esp32-connection-status { font-weight: bold; }
+        .esp32-connected { color: #008000; }
+        .esp32-disconnected { color: #FF0000; }
+        .esp32-unknown { color: #FFA500; } /* For connecting or select port states */
+        .status-left-group { 
+            display: flex;
+            align-items: center;
+        }
+        #current-mode-display { 
+            margin-left: 5px; 
+        }
+
+        /* Tab Styles */
+        .tab-navigation {
+            margin: 10px 2.5% 0; /* Align with table margins (assuming table width 95%) */
+            padding-bottom: 0;
+            border-bottom: 2px solid #000080; 
+        }
+
+        .tab-button {
+            padding: 8px 15px;
+            cursor: pointer;
+            border: 1px solid #A0A0A0;
+            border-bottom: none;
+            background-color: #E0E0E0;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            bottom: -1px; /* To make it look like it sits on the border */
+        }
+
+        .tab-button:hover {
+            background-color: #D0D0D0;
+        }
+
+        .tab-button.active {
+            background-color: #F0F0F0; /* Match table background */
+            border-color: #808080; /* Stronger border for active tab */
+            border-bottom: 1px solid #F0F0F0; /* Blend with content area */
+            font-weight: bold;
+            color: #000080;
+        }
+
+        .tab-content {
+            display: none; 
+            padding-top: 1px; /* Ensure content doesn't overlap bottom border of nav */
+        }
+
+        .tab-content.active {
+            display: block; 
+        }
+
+        #resultsLogTable { 
+            border: 2px outset #808080;
+            border-collapse: collapse;
+            background-color: #F0F0F0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 10px;
+            width: 95%;
+            table-layout: auto; 
+        }
+
+        #resultsLogTable th, #resultsLogTable td {
+            border: 1px inset #A0A0A0;
+            padding: 4px 6px; 
+            font-size: 10pt;   
+            vertical-align: middle;
+            overflow: hidden; 
+            white-space: nowrap; 
+        }
+        #resultsLogTable th {
+            background-color: #A0A0A0;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+        #resultsLogTable caption { 
+            font-size: 14pt;
+            font-weight: bold;
+            padding: 8px;
+            color: #000080;
+        }
+        
+        #resultsLogTable th:nth-child(1) { text-align: center; width: 5%;} 
+        #resultsLogTable th:nth-child(2) { text-align: left; width: 15%;}  
+        #resultsLogTable th:nth-child(3) { text-align: left; width: 15%;}  
+        #resultsLogTable th:nth-child(n+4) { text-align: right; } 
+
+        #resultsLogTable td:nth-child(1) { text-align: center; } 
+        #resultsLogTable td:nth-child(2) { text-align: left; font-size: 9pt; } 
+        #resultsLogTable td:nth-child(3) { text-align: left; }    
+        #resultsLogTable td:nth-child(n+4) {
+            text-align: right;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="page-container">
+    <div class="config-panel" id="configPanel">
+        <div class="config-header-container">
+            <h3>Configuration</h3>
+            <button id="toggleConfigButton" title="Collapse Configuration Panel">«</button>
+        </div>
+        <div id="configPanelContent">
+            <div>
+                <label for="comPortSelector">COM Port:</label>
+                <select id="comPortSelector">
+                    <option value="null">Detecting ports...</option>
+                </select>
+            </div>
+            <div>
+                <label for="totalSensorDistanceConfig">Actual S1-S3 Dist. (mm):</label>
+                <input type="number" id="totalSensorDistanceConfig" value="30" step="0.1">
+            </div>
+            <div>
+                <label for="calibrationTargetDistanceConfig">Calib. Target Dist. (mm):</label>
+                <input type="number" id="calibrationTargetDistanceConfig" value="32" step="0.1">
+            </div>
+            <div>
+                <label>Time Scaling Factor:</label>
+                <span id="timeScalingFactorDisplay" class="data-value">---</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            Precision Shutter Diagnostics Interface v1.1
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left-group">
+                <span>ESP32: <span id="esp32-connection-status" class="data-value esp32-unknown">Awaiting...</span></span>
+                <span style="margin-left: 20px;">Mode: <span id="current-mode-display" class="data-value">---</span></span>
+            </div>
+            <span>Last ESP32 Comms: <span id="last-update" class="data-value">N/A</span></span>
+        </div>
+
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="showTab('mainTableTab')">Main Analysis</button>
+            <button class="tab-button" onclick="showTab('resultsLogTab')">Results Log</button>
+        </div>
+
+        <div id="mainTableTabContent" class="tab-content active">
+            <table id="shutterDataTable">
+                <caption>Shutter Performance Analysis</caption>
+                <thead>
+                    <tr>
+                        <th style="width: 24%;">Metric</th>
+                        <th style="width: 12%;">Sensor 1 (S1)</th>
+                        <th class="compare-header" style="width: 11%;">S1 vs S2</th>
+                        <th style="width: 12%;">Sensor 2 (S2)</th>
+                        <th class="compare-header" style="width: 11%;">S2 vs S3</th>
+                        <th class="sensor3-col" style="width: 12%;">Sensor 3 (S3)</th>
+                        <th style="width: 18%;">Overall / Average</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7" class="section-header" style="border-top: 2px solid #707070;">Exposure & Shutter Speed</td></tr>
+                    <tr>
+                        <td class="metric-label">Exposure Time (ms)</td>
+                        <td id="exp_ms_s1" class="data-value">---</td>
+                        <td id="exp_compare_s1s2" class="compare-value">---</td>
+                        <td id="exp_ms_s2" class="data-value">---</td>
+                        <td id="exp_compare_s2s3" class="compare-value">---</td>
+                        <td id="exp_ms_s3" class="data-value sensor3-col">---</td>
+                        <td id="exp_ms_avg" class="data-value">--- (Avg)</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Shutter Speed</td>
+                        <td id="hz_s1" class="data-value">---</td>
+                        <td></td> 
+                        <td id="hz_s2" class="data-value">---</td>
+                        <td></td> 
+                        <td id="hz_s3" class="data-value sensor3-col">---</td>
+                        <td id="hz_avg" class="data-value">--- (Avg)</td>
+                    </tr>
+                    
+                    <tr><td colspan="7" class="section-header">Curtain 1 (Opening) Travel Times (ms)</td></tr>
+                    <tr>
+                        <td class="metric-label">S1 → S2</td>
+                        <td id="c1_t_s1_s2" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">S2 → S3</td>
+                        <td id="c1_t_s2_s3" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Total (S1 → S3)</td>
+                        <td id="c1_t_s1_s3_total" class="data-value" colspan="6">---</td>
+                    </tr>
+
+                    <tr><td colspan="7" class="section-header">Curtain 2 (Closing) Travel Times (ms)</td></tr>
+                    <tr>
+                        <td class="metric-label">S1 → S2</td>
+                        <td id="c2_t_s1_s2" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">S2 → S3</td>
+                        <td id="c2_t_s2_s3" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Total (S1 → S3)</td>
+                        <td id="c2_t_s1_s3_total" class="data-value" colspan="6">---</td>
+                    </tr>
+                    
+                    <tr><td colspan="7" class="section-header">Analysis & Durations</td></tr>
+                    <tr>
+                        <td class="metric-label">Shutter Fully Open Duration (ms)</td>
+                        <td id="open_time_duration_ms" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Avg. Slit Width (mm)</td>
+                        <td id="slit_width_mm" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Exposure Variation (% from avg)</td>
+                        <td id="exp_var_pct" class="data-value" colspan="6">---</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="7" class="section-header">
+                            Raw Sensor Timestamps
+                            <select id="timestampUnitSelector" onchange="triggerDisplayUpdate()">
+                                <option value="us" selected>µs</option>
+                                <option value="ms">ms</option>
+                                <option value="s">s</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">S1 (Open / Close)</td>
+                        <td id="raw_s1" class="data-value" colspan="6">--- / ---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">S2 (Open / Close)</td>
+                        <td id="raw_s2" class="data-value" colspan="6">--- / ---</td>
+                    </tr>
+                     <tr>
+                        <td class="metric-label">S3 (Open / Close)</td>
+                        <td id="raw_s3" class="data-value" colspan="6">--- / ---</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="error-display" style="text-align:center; margin-top:15px;"></div>
+        </div>
+
+        <div id="resultsLogTabContent" class="tab-content">
+            <table id="resultsLogTable">
+                <caption>Recent Results Log</caption>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>Mode</th>
+                        <th>Exp S1 (ms)</th>
+                        <th>Exp S2 (ms)</th>
+                        <th>Exp S3 (ms)</th>
+                        <th>Avg Speed (Hz)</th>
+                        <th>C1 Total (ms)</th>
+                        <th>C2 Total (ms)</th>
+                        <th>Slit (mm)</th>
+                        <th>Exp Var (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Log rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            (c) 1999-2025 Tom Grimwood. - For Professional Use Only.
+        </div>
+    </div> <!-- END main-content -->
+</div> <!-- END page-container -->
+
+<script type="text/javascript">
+    var lastReceivedData = null; 
+
+    // Configuration Panel Elements and Variables
+    var comPortSelector = document.getElementById('comPortSelector'); // NEW
+    var currentBackendSerialPort = null; // NEW: Tracks what backend THINKS is the port
+
+    var totalSensorDistanceConfigInput = document.getElementById('totalSensorDistanceConfig');
+    var calibrationTargetDistanceConfigInput = document.getElementById('calibrationTargetDistanceConfig');
+    var timeScalingFactorDisplay = document.getElementById('timeScalingFactorDisplay');
+    var currentTimeScalingFactor = 1.0; 
+
+    const configPanel = document.getElementById('configPanel');
+    const toggleConfigButton = document.getElementById('toggleConfigButton');
+
+    toggleConfigButton.addEventListener('click', function() {
+        configPanel.classList.toggle('collapsed');
+        if (configPanel.classList.contains('collapsed')) {
+            toggleConfigButton.innerHTML = '»';
+            toggleConfigButton.title = "Expand Configuration Panel";
+        } else {
+            toggleConfigButton.innerHTML = '«';
+            toggleConfigButton.title = "Collapse Configuration Panel";
+        }
+    });
+    
+    function showTab(tabIdToShow) {
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        document.getElementById(tabIdToShow + 'Content').classList.add('active');
+        document.querySelector(`.tab-button[onclick="showTab('${tabIdToShow}')"]`).classList.add('active');
+    }
+
+    const MAX_LOG_ENTRIES = 20;
+    let resultsLogData = [];
+    let resultsLogIdCounter = 1; 
+
+    function addResultToLog() { 
+        const logEntry = {
+            id: resultsLogIdCounter++,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+            mode: document.getElementById('current-mode-display').textContent.trim(),
+            expMsS1: document.getElementById('exp_ms_s1').textContent.trim(),
+            expMsS2: document.getElementById('exp_ms_s2').textContent.trim(),
+            expMsS3: document.getElementById('exp_ms_s3').textContent.trim(),
+            avgHz: document.getElementById('hz_avg').textContent.replace(' (Avg)','').trim(),
+            c1TotalMs: document.getElementById('c1_t_s1_s3_total').textContent.trim(),
+            c2TotalMs: document.getElementById('c2_t_s1_s3_total').textContent.trim(),
+            slitWidthMm: document.getElementById('slit_width_mm').textContent.trim(),
+            expVarPct: document.getElementById('exp_var_pct').textContent.trim(),
+        };
+        resultsLogData.unshift(logEntry);
+        if (resultsLogData.length > MAX_LOG_ENTRIES) {
+            resultsLogData.pop(); 
+        }
+        renderResultsLogTable();
+    }
+
+    function renderResultsLogTable() {
+        const logTableBody = document.getElementById('resultsLogTable').getElementsByTagName('tbody')[0];
+        if (!logTableBody) {
+            console.error("Results log table body not found!");
+            return;
+        }
+        logTableBody.innerHTML = ''; 
+        resultsLogData.forEach(entry => { 
+            const row = logTableBody.insertRow();
+            row.insertCell().textContent = entry.id;
+            row.insertCell().textContent = entry.timestamp;
+            row.insertCell().textContent = entry.mode;
+            row.insertCell().textContent = entry.expMsS1;    
+            row.insertCell().textContent = entry.expMsS2;    
+            row.insertCell().textContent = entry.expMsS3;    
+            row.insertCell().textContent = entry.avgHz;
+            row.insertCell().textContent = entry.c1TotalMs;
+            row.insertCell().textContent = entry.c2TotalMs;
+            row.insertCell().textContent = entry.slitWidthMm;
+            row.insertCell().textContent = entry.expVarPct;
+        });
+    }
+
+    function initializeConfigPanel() {
+        const initialTotalDist = parseFloat(totalSensorDistanceConfigInput.value);
+        const initialTargetDist = parseFloat(calibrationTargetDistanceConfigInput.value);
+        if (isNaN(initialTotalDist) || initialTotalDist <= 0 || isNaN(initialTargetDist) || initialTargetDist < 0) {
+            currentTimeScalingFactor = 1.0;
+            timeScalingFactorDisplay.textContent = "N/A";
+            timeScalingFactorDisplay.classList.add("error-message");
+        } else {
+            currentTimeScalingFactor = initialTargetDist / initialTotalDist;
+            timeScalingFactorDisplay.textContent = currentTimeScalingFactor.toFixed(4);
+            timeScalingFactorDisplay.classList.remove("error-message");
+        }
+    }
+
+    function updateScalingFactorAndRedisplay() {
+        const totalDist = parseFloat(totalSensorDistanceConfigInput.value);
+        const targetDist = parseFloat(calibrationTargetDistanceConfigInput.value);
+        if (isNaN(totalDist) || isNaN(targetDist) || totalDist <= 0 || targetDist < 0) {
+            currentTimeScalingFactor = 1.0; 
+            timeScalingFactorDisplay.textContent = "N/A (invalid)";
+            timeScalingFactorDisplay.classList.add("error-message");
+        } else {
+            currentTimeScalingFactor = targetDist / totalDist;
+            timeScalingFactorDisplay.textContent = currentTimeScalingFactor.toFixed(4);
+            timeScalingFactorDisplay.classList.remove("error-message");
+        }
+        triggerDisplayUpdate(); 
+    }
+    
+    function setText(id, value, precision, unit = '') {
+        var el = document.getElementById(id);
+        if (el) {
+            if (value === null || typeof value === 'undefined' || value === "inf" || (typeof value === 'string' && (value.toLowerCase() === 'nan' || value.toLowerCase() === 'n/a')) ) {
+                el.textContent = 'N/A';
+                 if(id === 'current-mode-display') el.textContent = '---'; 
+            } else if (typeof value === 'number' && precision !== undefined) {
+                el.textContent = value.toFixed(precision) + unit;
+            } else {
+                el.textContent = value.toString() + unit;
+            }
+        }
+    }
+
+    function calculateAndDisplayComparison(val1, val2, targetCellId) {
+        var el = document.getElementById(targetCellId);
+        if (!el) return;
+        if (val1 === null || typeof val1 === 'undefined' || val2 === null || typeof val2 === 'undefined' || val1 === "inf" || val2 === "inf") {
+            el.textContent = 'N/A'; return;
+        }
+        var num1 = parseFloat(val1); var num2 = parseFloat(val2);
+        if (isNaN(num1) || isNaN(num2)) { el.textContent = 'N/A'; return; }
+        var sign = (num1 > num2) ? '>' : (num1 < num2) ? '<' : '=';
+        var diffPercent = 0;
+        if (num1 !== num2) {
+            var avgForDiff = (Math.abs(num1) + Math.abs(num2)) / 2; 
+            if (avgForDiff !== 0) { diffPercent = Math.abs(num1 - num2) / avgForDiff * 100; } 
+            else { diffPercent = (num1 !== 0 || num2 !== 0) ? 100.0 : 0; }
+        }
+        el.innerHTML = `${sign} (${diffPercent.toFixed(1)}%)`;
+    }
+
+    function formatRawTimestamp(value_us, unit) {
+        if (value_us === null || typeof value_us === 'undefined') return 'N/A';
+        var num_us = Number(value_us);
+        if (isNaN(num_us)) return 'N/A';
+        switch (unit) {
+            case 'ms': return (num_us / 1000.0).toFixed(3);
+            case 's': return (num_us / 1000000.0).toFixed(6);
+            case 'us': default: return num_us.toString();
+        }
+    }
+    
+    function triggerDisplayUpdate() {
+        if (lastReceivedData && lastReceivedData.shutter_metrics) {
+            updateShutterDisplay(lastReceivedData.shutter_metrics); 
+        }
+    }
+
+    function updateShutterDisplay(metrics) {
+        if (!metrics) return;
+        var errorDisplay = document.getElementById('error-display');
+        var calculationErrorOccurred = false;
+        if (metrics.errors && metrics.errors.length > 0) {
+            var errorHtml = '<p class="error-message">Calculation Issues:</p><ul>';
+            metrics.errors.forEach(function(err) { errorHtml += '<li class="error-message">' + err + '</li>'; });
+            errorHtml += '</ul>'; errorDisplay.innerHTML = errorHtml; calculationErrorOccurred = true;
+        }
+        if (!calculationErrorOccurred && errorDisplay.innerHTML.includes("Calculation Issues")) {
+            errorDisplay.innerHTML = '';
+        }
+        setText('current-mode-display', metrics.measurement_mode ? metrics.measurement_mode : '---');
+        var exp_ms_s1 = metrics.exposure_times_ms ? metrics.exposure_times_ms.s1 : null;
+        var exp_ms_s2 = metrics.exposure_times_ms ? metrics.exposure_times_ms.s2 : null;
+        var exp_ms_s3 = metrics.exposure_times_ms ? metrics.exposure_times_ms.s3 : null;
+        setText('exp_ms_s1', exp_ms_s1, 3); setText('exp_ms_s2', exp_ms_s2, 3); setText('exp_ms_s3', exp_ms_s3, 3);
+        calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2');
+        calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3');
+        var validExposuresMs = [];
+        if(exp_ms_s1 !== null && !isNaN(parseFloat(exp_ms_s1))) validExposuresMs.push(parseFloat(exp_ms_s1)); 
+        if(exp_ms_s2 !== null && !isNaN(parseFloat(exp_ms_s2))) validExposuresMs.push(parseFloat(exp_ms_s2)); 
+        if(exp_ms_s3 !== null && !isNaN(parseFloat(exp_ms_s3))) validExposuresMs.push(parseFloat(exp_ms_s3));
+        if (validExposuresMs.length > 0) { 
+            var avgExpMs = validExposuresMs.reduce((a, b) => a + b, 0) / validExposuresMs.length; 
+            setText('exp_ms_avg', avgExpMs, 3, ' (Avg)'); 
+        } else { setText('exp_ms_avg', null); }
+        var hz_s1_val = metrics.shutter_speeds_hz_equivalent ? metrics.shutter_speeds_hz_equivalent.s1 : null;
+        var hz_s2_val = metrics.shutter_speeds_hz_equivalent ? metrics.shutter_speeds_hz_equivalent.s2 : null;
+        var hz_s3_val = metrics.shutter_speeds_hz_equivalent ? metrics.shutter_speeds_hz_equivalent.s3 : null;
+        setText('hz_s1', hz_s1_val, 2); setText('hz_s2', hz_s2_val, 2); setText('hz_s3', hz_s3_val, 2); 
+        var validHz = [];
+        function parseHz(val) { return (val !== null && val !== "inf" && !isNaN(parseFloat(val))) ? parseFloat(val) : null; } 
+        let h1 = parseHz(hz_s1_val); let h2 = parseHz(hz_s2_val); let h3 = parseHz(hz_s3_val); 
+        if (h1 !== null) validHz.push(h1); if (h2 !== null) validHz.push(h2); if (h3 !== null) validHz.push(h3); 
+        if (validHz.length > 0) { 
+            var avgHz = validHz.reduce((a, b) => a + b, 0) / validHz.length; 
+            setText('hz_avg', avgHz, 2, ' (Avg)'); 
+        } else { setText('hz_avg', null); }
+        setText('open_time_duration_ms', metrics.open_time_duration_ms, 3);
+        setText('slit_width_mm', metrics.average_slit_width_mm, (typeof metrics.average_slit_width_mm === 'number' ? 2 : undefined));
+        setText('exp_var_pct', metrics.exposure_variation_percent_from_avg, 2, metrics.exposure_variation_percent_from_avg === null ? '' : '%');
+        var c1_s1s2_raw = metrics.curtain1_travel_times_ms ? metrics.curtain1_travel_times_ms.s1_to_s2 : null;
+        setText('c1_t_s1_s2', (c1_s1s2_raw !== null ? c1_s1s2_raw * currentTimeScalingFactor : null), 3);
+        var c1_s2s3_raw = metrics.curtain1_travel_times_ms ? metrics.curtain1_travel_times_ms.s2_to_s3 : null;
+        setText('c1_t_s2_s3', (c1_s2s3_raw !== null ? c1_s2s3_raw * currentTimeScalingFactor : null), 3);
+        var c1_s1s3_raw = metrics.curtain1_travel_times_ms ? metrics.curtain1_travel_times_ms.s1_to_s3_total : null;
+        setText('c1_t_s1_s3_total', (c1_s1s3_raw !== null ? c1_s1s3_raw * currentTimeScalingFactor : null), 3);
+        var c2_s1s2_raw = metrics.curtain2_travel_times_ms ? metrics.curtain2_travel_times_ms.s1_to_s2 : null;
+        setText('c2_t_s1_s2', (c2_s1s2_raw !== null ? c2_s1s2_raw * currentTimeScalingFactor : null), 3);
+        var c2_s2s3_raw = metrics.curtain2_travel_times_ms ? metrics.curtain2_travel_times_ms.s2_to_s3 : null;
+        setText('c2_t_s2_s3', (c2_s2s3_raw !== null ? c2_s2s3_raw * currentTimeScalingFactor : null), 3);
+        var c2_s1s3_raw = metrics.curtain2_travel_times_ms ? metrics.curtain2_travel_times_ms.s1_to_s3_total : null;
+        setText('c2_t_s1_s3_total', (c2_s1s3_raw !== null ? c2_s1s3_raw * currentTimeScalingFactor : null), 3);
+        var selectedUnit = document.getElementById('timestampUnitSelector').value;
+        var raw_s1_o_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s1_open !== 'undefined') ? metrics.raw_times_us.s1_open : null;
+        var raw_s1_c_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s1_close !== 'undefined') ? metrics.raw_times_us.s1_close : null;
+        setText('raw_s1', formatRawTimestamp(raw_s1_o_us, selectedUnit) + ' / ' + formatRawTimestamp(raw_s1_c_us, selectedUnit));
+        var raw_s2_o_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s2_open !== 'undefined') ? metrics.raw_times_us.s2_open : null;
+        var raw_s2_c_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s2_close !== 'undefined') ? metrics.raw_times_us.s2_close : null;
+        setText('raw_s2', formatRawTimestamp(raw_s2_o_us, selectedUnit) + ' / ' + formatRawTimestamp(raw_s2_c_us, selectedUnit));
+        var raw_s3_o_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s3_open !== 'undefined') ? metrics.raw_times_us.s3_open : null;
+        var raw_s3_c_us = (metrics.raw_times_us && typeof metrics.raw_times_us.s3_close !== 'undefined') ? metrics.raw_times_us.s3_close : null;
+        setText('raw_s3', formatRawTimestamp(raw_s3_o_us, selectedUnit) + ' / ' + formatRawTimestamp(raw_s3_c_us, selectedUnit));
+        addResultToLog(); 
+    }
+
+    function updateEsp32Status(statusData) {
+        var el = document.getElementById('esp32-connection-status');
+        if (el && statusData) {
+            el.textContent = statusData.status_text; // Use full text from backend
+            el.className = 'data-value '; 
+            if (statusData.online) {
+                el.classList.add('esp32-connected');
+            } else {
+                if (statusData.current_port === null || statusData.status_text.includes("Select COM Port") || statusData.status_text.includes("Connecting") || statusData.status_text.includes("Switching") || statusData.status_text.includes("Initializing") || statusData.status_text.includes("Attempting")) {
+                    el.classList.add('esp32-unknown'); 
+                } else {
+                    el.classList.add('esp32-disconnected');
+                }
+            }
+            
+            var reportedPort = statusData.current_port === null ? "null" : statusData.current_port;
+            if (currentBackendSerialPort !== reportedPort) { // Backend port status changed
+                 currentBackendSerialPort = reportedPort;
+                 // Only update dropdown if it's not currently focused to avoid jarring UX
+                 // AND if its current value doesn't match what backend reports.
+                 // This helps if populateComPortsDropdown is about to run or just ran.
+                 if (document.activeElement !== comPortSelector && comPortSelector.value !== currentBackendSerialPort) {
+                    comPortSelector.value = currentBackendSerialPort; // "null" or port string
+                 }
+            }
+        }
+        var lastUpdateEl = document.getElementById('last-update');
+        if (statusData && statusData.last_seen_timestamp) {
+            var updateTime = new Date(statusData.last_seen_timestamp * 1000); 
+            lastUpdateEl.textContent = updateTime.getHours().toString().padStart(2, '0') + ':' + updateTime.getMinutes().toString().padStart(2, '0') + ':' + updateTime.getSeconds().toString().padStart(2, '0');
+        } else {
+            if (lastUpdateEl.textContent === 'N/A' || !lastUpdateEl.textContent.includes(':')) {
+                 lastUpdateEl.textContent = 'N/A';
+            }
+        }
+    }
+
+    var eventSource = null;
+    var errorDisplayGlobal = document.getElementById('error-display'); 
+
+    function startSSE() {
+        if (eventSource) { eventSource.close(); }
+        eventSource = new EventSource("/stream");
+        eventSource.onopen = function() { errorDisplayGlobal.innerHTML = ''; };
+        eventSource.onmessage = function(event) {
+            if (event.data === ": heartbeat" || event.data.startsWith(":")) { return; }
+            try {
+                var jsonData = JSON.parse(event.data);
+                if (jsonData.shutter_metrics) {
+                    lastReceivedData = jsonData; 
+                    updateShutterDisplay(jsonData.shutter_metrics);
+                }
+                if (jsonData.esp32_connection) {
+                    updateEsp32Status(jsonData.esp32_connection);
+                }
+                if (jsonData.error) { 
+                     errorDisplayGlobal.innerHTML = '<p class="error-message">SERVER STREAM ERROR: ' + jsonData.error + '</p>';
+                } else if (jsonData.shutter_metrics && (!jsonData.shutter_metrics.errors || jsonData.shutter_metrics.errors.length === 0)) {
+                    if (errorDisplayGlobal.innerHTML.includes("SERVER STREAM ERROR")) {
+                         errorDisplayGlobal.innerHTML = '';
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing JSON from SSE:", e, "Raw data:", event.data);
+                errorDisplayGlobal.innerHTML = '<p class="error-message">CLIENT ERROR: Malformed data from server. Check console.</p>';
+            }
+        };
+        eventSource.onerror = function(err) {
+            console.error("EventSource failed:", err);
+            var espStatusEl = document.getElementById('esp32-connection-status');
+            espStatusEl.textContent = "Comms Error"; 
+            espStatusEl.className = 'data-value esp32-disconnected';
+            document.getElementById('current-mode-display').textContent = '---';
+            document.getElementById('last-update').textContent = 'Error';
+            eventSource.close();
+            setTimeout(startSSE, 5000); 
+        };
+    }
+
+    // --- COM PORT FUNCTIONS ---
+    function populateComPortsDropdown() {
+        fetch('/get_com_ports')
+            .then(response => response.json())
+            .then(data => {
+                comPortSelector.innerHTML = ''; // Clear existing
+                const initialAssumedPort = currentBackendSerialPort || "null";
+                let finalPortToSelect = initialAssumedPort;
+
+                if (data.ports && data.ports.length > 0) {
+                    comPortSelector.add(new Option("Select Port...", "null"));
+                    data.ports.forEach(port => {
+                        let option = new Option(port, port);
+                        comPortSelector.add(option);
+                    });
+
+                    const backendPortIsValidAndAvailable = initialAssumedPort !== "null" && data.ports.includes(initialAssumedPort);
+
+                    if (!backendPortIsValidAndAvailable) {
+                        // If backend port is not valid/available (or was "null"), and we have ports, select the first.
+                        finalPortToSelect = data.ports[0];
+                        console.log("Auto-selecting first available COM port:", finalPortToSelect);
+                    }
+                    // If backendPortIsValidAndAvailable, finalPortToSelect remains initialAssumedPort (which is correct)
+                } else { // No COM ports found or error fetching
+                    comPortSelector.add(new Option("No COM ports found", "null")); // Value "null"
+                    if (initialAssumedPort !== "null") {
+                        // If backend thought it had a port, but now there are none, change to "null".
+                        finalPortToSelect = "null";
+                        console.log("No COM ports found. Setting target to null as backend port was:", initialAssumedPort);
+                    }
+                    // If initialAssumedPort was already "null", finalPortToSelect remains "null" (which is correct)
+                }
+                
+                comPortSelector.value = finalPortToSelect;
+
+                // If the final decision for port selection is different from what we initially assumed
+                // (based on backend's state), then dispatch the change event to notify the backend.
+                if (finalPortToSelect !== initialAssumedPort) {
+                    console.log(`Port selection changed from '${initialAssumedPort}' to '${finalPortToSelect}'. Dispatching change event.`);
+                    comPortSelector.dispatchEvent(new Event('change'));
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching COM ports:', error);
+                comPortSelector.innerHTML = '';
+                comPortSelector.add(new Option("Error loading ports", "null")); // Value "null"
+                
+                const initialAssumedPortOnError = currentBackendSerialPort || "null";
+                // If backend had a port, and now we can't even load ports, it's safer to tell backend to disconnect.
+                if (initialAssumedPortOnError !== "null") {
+                    comPortSelector.value = "null"; // Visually show "Error loading..." but its value is "null"
+                    console.log("Error fetching COM ports. Dispatching change to set port to null as backend port was:", initialAssumedPortOnError);
+                    comPortSelector.dispatchEvent(new Event('change')); // This will send "null"
+                }
+            });
+    }
+
+    comPortSelector.addEventListener('change', function() {
+        var selectedPort = this.value; // "null" or actual port string
+        var espStatusEl = document.getElementById('esp32-connection-status');
+
+        // Update status immediately for responsiveness, SSE will confirm/correct
+        if (selectedPort === "null") {
+             // If user actively selects "Select Port..." or if auto-selected to null
+            if (currentBackendSerialPort && currentBackendSerialPort !== "null") { // only show switching if it was connected
+                espStatusEl.textContent = "Disconnecting...";
+            } else {
+                espStatusEl.textContent = "Select COM Port";
+            }
+        } else {
+            espStatusEl.textContent = "Switching to " + selectedPort + "...";
+        }
+        espStatusEl.className = 'data-value esp32-unknown';
+        
+        fetch('/set_com_port', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ port: selectedPort === "null" ? null : selectedPort })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Set COM port response:', data);
+            // SSE stream will provide the authoritative status update.
+            if (data.status === 'error') {
+                 espStatusEl.textContent = data.message || "Error setting COM port.";
+                 espStatusEl.className = 'data-value esp32-disconnected';
+                 // populateComPortsDropdown(); // Optionally refresh list, but SSE should handle true state
+            }
+        })
+        .catch(error => {
+            console.error('Error setting COM port:', error);
+            espStatusEl.textContent = "Port change error (client)";
+            espStatusEl.className = 'data-value esp32-disconnected';
+        });
+    });
+
+
+    totalSensorDistanceConfigInput.addEventListener('input', updateScalingFactorAndRedisplay);
+    calibrationTargetDistanceConfigInput.addEventListener('input', updateScalingFactorAndRedisplay);
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeConfigPanel(); 
+        populateComPortsDropdown(); // Populate COM ports before starting SSE
+        renderResultsLogTable(); 
+        startSSE(); 
+    });
+</script>
+
+</body>
+</html>
