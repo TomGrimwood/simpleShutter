@@ -1,4 +1,4 @@
-body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; color: #000000; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background-color: #FFFFFF; color: #333333; margin: 0; padding: 0; }
 
 .page-container {
     display: flex;
@@ -7,9 +7,9 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
 
 .config-panel {
     width: 200px; 
-    background-color: #E0E0E0; 
+    background-color: #F8F9FA; 
     padding: 15px;
-    border-right: 2px solid #808080;
+    border-right: 1px solid #DDDDDD;
     font-size: 10pt;
     box-sizing: border-box;
     transition: width 0.3s ease, padding-left 0.3s ease, padding-right 0.3s ease;
@@ -28,8 +28,8 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
 .config-panel h3 { 
     margin-top: 0;
     margin-bottom: 0; 
-    color: #000080;
-    border-bottom: 1px solid #A0A0A0;
+    color: #333333;
+    border-bottom: 1px solid #DDDDDD;
     padding-bottom: 8px;
     font-size: 12pt;
     flex-grow: 1; 
@@ -38,9 +38,9 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
     transition: opacity 0.2s ease, max-width 0.3s ease, padding-bottom 0.3s ease, border-bottom-width 0.3s ease, margin 0.3s ease, flex-grow 0.3s ease;
 }
 #toggleConfigButton {
-    background: #A0A0A0;
-    color: white;
-    border: 1px outset #808080;
+    background: #DDE1E4;
+    color: #333333;
+    border: 1px solid #CCCCCC;
     padding: 2px 6px;
     font-size: 12pt;
     font-weight: bold;
@@ -50,7 +50,7 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
     flex-shrink: 0; 
 }
 #toggleConfigButton:hover {
-    background: #808080;
+    background: #CCD1D5;
 }
 
 #configPanelContent {
@@ -72,11 +72,11 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
 #configPanelContent select { /* Added select styling */
     width: calc(100% - 12px); 
     padding: 5px;
-    border: 1px inset #808080;
+    border: 1px solid #CCCCCC;
     font-family: "Courier New", Courier, monospace;
     font-size: 10pt;
     box-sizing: border-box;
-    background-color: #F0F0F0;
+    background-color: #FFFFFF;
 }
 .config-panel .data-value { 
      font-family: "Courier New", Courier, monospace;
@@ -124,52 +124,52 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
 }
 
 table { /* Default for main table */
-    border: 2px outset #808080;
+    border: 1px solid #DDDDDD;
     border-collapse: collapse;
-    background-color: #F0F0F0;
+    background-color: #FFFFFF;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10px;
+    margin-top: 15px;
     width: 95%;
     max-width: 800px;
     table-layout: fixed; 
 }
 th, td { /* Default for main table */
-    border: 1px inset #A0A0A0;
-    padding: 5px;
+    border: 1px solid #E0E0E0;
+    padding: 8px;
     font-size: 11pt;
     vertical-align: middle;
     overflow: hidden; 
 }
-th { background-color: #A0A0A0; color: #FFFFFF; font-weight: bold; text-align: center; }
+th { background-color: #E9ECEF; color: #333333; font-weight: bold; text-align: center; }
 td.metric-label { font-weight: bold; text-align: left; }
-caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
-.header { background-color: #000080; color: #FFFF00; padding: 10px; text-align: center; font-size: 18pt; font-weight: bold; border-bottom: 3px double #000000; }
+caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #333333; }
+.header { background-color: #4A5568; color: #FFFFFF; padding: 10px; text-align: center; font-size: 18pt; font-weight: bold; border-bottom: 2px solid #333333; }
 .footer { text-align: center; font-size: 9pt; margin-top: 20px; color: #505050; padding-bottom: 10px; }
 .data-value { font-family: "Courier New", Courier, monospace; font-weight: bold; color: #0000FF; text-align: right; }
 .status-bar {
-    background-color: #A0A0A0;
+    background-color: #E9ECEF;
     color: #000000;
     padding: 3px 10px;
     font-size: 10pt;
-    border-top: 1px solid #FFFFFF;
-    border-bottom: 1px solid #000000;
+    border-top: 1px solid #DDDDDD;
+    border-bottom: 1px solid #DDDDDD;
     display: flex;
     justify-content: space-between;
     align-items: center; 
 }
 .status-bar select {
-    font-family: "Times New Roman", Times, serif;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 9pt;
     margin-left: 5px;
-    border: 1px inset #808080; 
-    background-color: #F0F0F0; 
+    border: 1px solid #CCCCCC; 
+    background-color: #FFFFFF; 
     padding: 1px 3px; 
     vertical-align: middle;
 }
 
 .error-message { color: #FF0000; font-weight: bold; }
-.sensor3-col { border-right: 3px solid #707070 !important; }
+.sensor3-col { border-right: 2px solid #A0B2C8; }
 .compare-value {
     font-family: "Courier New", Courier, monospace;
     text-align: center;
@@ -179,13 +179,13 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
     text-overflow: ellipsis; 
 }
 .compare-header { font-size: 9pt; }
-.section-header { background-color: #B0B0B0; color: #000000; font-weight: bold; text-align: center; }
+.section-header { background-color: #F1F3F5; color: #000000; font-weight: bold; text-align: center; }
 .section-header select { 
-    font-family: "Times New Roman", Times, serif;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 9pt;
     margin-left: 10px;
-    border: 1px inset #808080; 
-    background-color: #F0F0F0; 
+    border: 1px solid #CCCCCC; 
+    background-color: #FFFFFF; 
     padding: 1px; 
 }
 #esp32-connection-status { font-weight: bold; }
@@ -201,16 +201,16 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 .tab-navigation {
     margin: 10px 2.5% 0; /* Align with table margins (assuming table width 95%) */
     padding-bottom: 0;
-    border-bottom: 2px solid #000080; 
+    border-bottom: 2px solid #DDDDDD; 
 }
 
 .tab-button {
     padding: 8px 15px;
     cursor: pointer;
-    border: 1px solid #A0A0A0;
+    border: 1px solid #DDDDDD;
     border-bottom: none;
-    background-color: #E0E0E0;
-    font-family: "Times New Roman", Times, serif;
+    background-color: #E9ECEF;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 11pt;
     margin-right: 5px;
     border-radius: 4px 4px 0 0;
@@ -219,15 +219,15 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 }
 
 .tab-button:hover {
-    background-color: #D0D0D0;
+    background-color: #DAE0E5;
 }
 
 .tab-button.active {
-    background-color: #F0F0F0; /* Match table background */
-    border-color: #808080; /* Stronger border for active tab */
-    border-bottom: 1px solid #F0F0F0; /* Blend with content area */
+    background-color: #FFFFFF; /* Match table background */
+    border-color: #DDDDDD; /* Stronger border for active tab */
+    border-bottom: 1px solid #FFFFFF; /* Blend with content area */
     font-weight: bold;
-    color: #000080;
+    color: #007BFF;
 }
 
 .tab-content {
@@ -240,34 +240,34 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 }
 
 #resultsLogTable { 
-    border: 2px outset #808080;
+    border: 1px solid #DDDDDD;
     border-collapse: collapse;
-    background-color: #F0F0F0;
+    background-color: #FFFFFF;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10px;
+    margin-top: 15px;
     width: 95%;
     table-layout: auto; 
 }
 
 #resultsLogTable th, #resultsLogTable td {
-    border: 1px inset #A0A0A0;
-    padding: 4px 6px; 
+    border: 1px solid #E0E0E0;
+    padding: 6px 8px; 
     font-size: 10pt;   
     vertical-align: middle;
     overflow: hidden; 
     white-space: nowrap; 
 }
 #resultsLogTable th {
-    background-color: #A0A0A0;
-    color: #FFFFFF;
+    background-color: #E9ECEF;
+    color: #333333;
     font-weight: bold;
 }
 #resultsLogTable caption { 
     font-size: 14pt;
     font-weight: bold;
     padding: 8px;
-    color: #000080;
+    color: #333333;
 }
 
 #resultsLogTable th:nth-child(1) { text-align: center; width: 5%;} 
