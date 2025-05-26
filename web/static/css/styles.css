@@ -283,8 +283,33 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
     font-family: "Courier New", Courier, monospace;
 }
 
-.unit-display {
-    margin-left: 4px; /* Adjust as needed for visual spacing */
-    /* The color will be inherited from the body (black in original theme), which is fine. */
-    /* Font family will also be inherited (Times New Roman), which is fine. */
+/* New styles for input with unit */
+.input-with-unit {
+    display: flex;
+    align-items: center;
+    border: 1px inset #808080; /* Original input border */
+    background-color: #F0F0F0; /* Original input background */
+    padding-right: 6px;      /* Space for the unit text */
+    box-sizing: border-box;
+    width: calc(100% - 12px); /* Original input width */
+    /* font-size for unit-text will be inherited from .config-panel (10pt) */
+}
+
+.input-with-unit input[type="number"] {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    flex-grow: 1;
+    padding: 5px; /* Original input padding */
+    font-family: "Courier New", Courier, monospace; /* Original input font */
+    font-size: 10pt; /* Original input font size */
+    color: #000000; /* Ensure text is visible, matches original body text color */
+    min-width: 50px; /* Prevent input from becoming too small */
+}
+
+.input-with-unit .unit-text {
+    padding-left: 3px;
+    white-space: nowrap;
+    /* Color for unit text will be inherited (original body text color: black) */
+    /* Font-family for unit text will be inherited (original panel font: Times New Roman) */
 }
