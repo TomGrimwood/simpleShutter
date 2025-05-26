@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Shutter Speed Monitor</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        select, button { padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
+        button { background-color: #0056b3; color: white; margin-left: 10px; }
+        button:hover { background-color: #004494; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .result-card { background-color: #e9efff; padding: 15px; border-radius: 4px; }
+        .result-card h3 { margin-top: 0; color: #003d82; }
+        .result-card p { margin: 5px 0; }
+        .result-card span { font-weight: normal; color: #333; }
+        .status-bar { margin-bottom:20px; padding:10px; background-color:#ddd; border-radius:4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32 Shutter Speed Monitor</h1>
+
+        <div class="controls">
+            <label for="modeSelect">Select Mode:</label>
+            <select id="modeSelect">
+                <option value="0">All Sensors (S1, S2, S3)</option>
+                <option value="1">Outer Sensors (S1, S3)</option>
+                <option value="2">Inner Sensor (S2)</option>
+            </select>
+            <button onclick="applyModeChange()">Set Mode</button>
+            <button onclick="manualReset()">Manual Reset</button>
+            <button onclick="refreshData()">Refresh Data</button>
+        </div>
+        
+        <div class="status-bar">
+            Current Mode: <span id="currentModeDisplay">---</span> | Status: <span id="systemStatus">Initializing...</span>
+        </div>
+
+        <h2>Sensor Data & Calculations</h2>
+        <div class="results-grid">
+            <div class="result-card">
+                <h3>Sensor 1 (Top)</h3>
+                <p>S1 Open: <span id="s1OpenTime">---</span> µs</p>
+                <p>S1 Close: <span id="s1CloseTime">---</span> µs</p>
+                <p>S1 Exposure: <span id="s1Exposure">---</span> µs (<span id="s1ExposureFraction">---</span> s)</p>
+            </div>
+            <div class="result-card">
+                <h3>Sensor 2 (Middle)</h3>
+                <p>S2 Open: <span id="s2OpenTime">---</span> µs</p>
+                <p>S2 Close: <span id="s2CloseTime">---</span> µs</p>
+                <p>S2 Exposure: <span id="s2Exposure">---</span> µs (<span id="s2ExposureFraction">---</span> s)</p>
+            </div>
+            <div class="result-card">
+                <h3>Sensor 3 (Bottom)</h3>
+                <p>S3 Open: <span id="s3OpenTime">---</span> µs</p>
+                <p>S3 Close: <span id="s3CloseTime">---</span> µs</p>
+                <p>S3 Exposure: <span id="s3Exposure">---</span> µs (<span id="s3ExposureFraction">---</span> s)</p>
+            </div>
+            <div class="result-card">
+                <h3>Curtain 1 Travel Times (Opening Edge)</h3>
+                <p>S1 -> S2: <span id="c1Travel_1_2">---</span> µs</p>
+                <p>S2 -> S3: <span id="c1Travel_2_3">---</span> µs</p>
+                <p>S1 -> S3: <span id="c1Travel_1_3">---</span> µs</p>
+            </div>
+            <div class="result-card">
+                <h3>Curtain 2 Travel Times (Closing Edge)</h3>
+                <p>S1 -> S2: <span id="c2Travel_1_2">---</span> µs</p>
+                <p>S2 -> S3: <span id="c2Travel_2_3">---</span> µs</p>
+                <p>S1 -> S3: <span id="c2Travel_1_3">---</span> µs</p>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
