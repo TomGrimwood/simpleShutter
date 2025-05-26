@@ -34,37 +34,39 @@ static shutter_data_values_t g_latest_shutter_data;
 // Mutex to protect g_latest_shutter_data
 static SemaphoreHandle_t g_shutter_data_mutex;
 
+// Forward declaration for sensor_task
+static void sensor_task(void *pvParameters);
+
 // Embedded file symbols
-// Index and original app.js (though app.js is no longer directly served, symbols might still be generated if not removed from CMake)
+// Index
 extern const uint8_t index_html_start[] asm("_binary_index_html_start");
 extern const uint8_t index_html_end[]   asm("_binary_index_html_end");
-// extern const uint8_t app_js_start[]     asm("_binary_app_js_start"); // No longer served directly
-// extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
 
-// New static files
-extern const uint8_t styles_css_start[] asm("_binary_static_css_styles_css_start");
-extern const uint8_t styles_css_end[]   asm("_binary_static_css_styles_css_end");
+// CSS
+extern const uint8_t styles_css_start[] asm("_binary_html_static_css_styles_css_start");
+extern const uint8_t styles_css_end[]   asm("_binary_html_static_css_styles_css_end");
 
-extern const uint8_t api_js_start[] asm("_binary_static_js_api_js_start");
-extern const uint8_t api_js_end[]   asm("_binary_static_js_api_js_end");
+// JS Files
+extern const uint8_t api_js_start[] asm("_binary_html_static_js_api_js_start");
+extern const uint8_t api_js_end[]   asm("_binary_html_static_js_api_js_end");
 
-extern const uint8_t config_panel_js_start[] asm("_binary_static_js_config_panel_js_start");
-extern const uint8_t config_panel_js_end[]   asm("_binary_static_js_config_panel_js_end");
+extern const uint8_t config_panel_js_start[] asm("_binary_html_static_js_config_panel_js_start");
+extern const uint8_t config_panel_js_end[]   asm("_binary_html_static_js_config_panel_js_end");
 
-extern const uint8_t data_updater_js_start[] asm("_binary_static_js_data_updater_js_start");
-extern const uint8_t data_updater_js_end[]   asm("_binary_static_js_data_updater_js_end");
+extern const uint8_t data_updater_js_start[] asm("_binary_html_static_js_data_updater_js_start");
+extern const uint8_t data_updater_js_end[]   asm("_binary_html_static_js_data_updater_js_end");
 
-extern const uint8_t main_js_start[] asm("_binary_static_js_main_js_start");
-extern const uint8_t main_js_end[]   asm("_binary_static_js_main_js_end");
+extern const uint8_t main_js_start[] asm("_binary_html_static_js_main_js_start");
+extern const uint8_t main_js_end[]   asm("_binary_html_static_js_main_js_end");
 
-extern const uint8_t results_log_js_start[] asm("_binary_static_js_results_log_js_start");
-extern const uint8_t results_log_js_end[]   asm("_binary_static_js_results_log_js_end");
+extern const uint8_t results_log_js_start[] asm("_binary_html_static_js_results_log_js_start");
+extern const uint8_t results_log_js_end[]   asm("_binary_html_static_js_results_log_js_end");
 
-extern const uint8_t shutter_calculations_js_start[] asm("_binary_static_js_shutter_calculations_js_start");
-extern const uint8_t shutter_calculations_js_end[]   asm("_binary_static_js_shutter_calculations_js_end");
+extern const uint8_t shutter_calculations_js_start[] asm("_binary_html_static_js_shutter_calculations_js_start");
+extern const uint8_t shutter_calculations_js_end[]   asm("_binary_html_static_js_shutter_calculations_js_end");
 
-extern const uint8_t ui_helpers_js_start[] asm("_binary_static_js_ui_helpers_js_start");
-extern const uint8_t ui_helpers_js_end[]   asm("_binary_static_js_ui_helpers_js_end");
+extern const uint8_t ui_helpers_js_start[] asm("_binary_html_static_js_ui_helpers_js_start");
+extern const uint8_t ui_helpers_js_end[]   asm("_binary_html_static_js_ui_helpers_js_end");
 
 
 static int s_retry_num = 0;

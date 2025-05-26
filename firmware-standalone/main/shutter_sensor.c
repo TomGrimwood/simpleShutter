@@ -34,9 +34,9 @@ static volatile bool is_sensor3_active = true;
 static portMUX_TYPE timer_spinlock = portMUX_INITIALIZER_UNLOCKED;
 
 // Forward declarations for ISR handlers
-static void IRAM_ATTR sensor1_isr_handler(void* arg);
-static void IRAM_ATTR sensor2_isr_handler(void* arg);
-static void IRAM_ATTR sensor3_isr_handler(void* arg);
+static void sensor1_isr_handler(void* arg);
+static void sensor2_isr_handler(void* arg);
+static void sensor3_isr_handler(void* arg);
 
 
 // --- ISR Handlers ---
@@ -50,7 +50,7 @@ static void IRAM_ATTR sensor1_isr_handler(void* arg) {
         return;
     }
 
-    if (pin_level == HIGH) { // Sensor sees light (shutter opening)
+    if (pin_level == 1) { // Sensor sees light (shutter opening)
         sensor1_open_time_us = current_micros;
         sensor1_state = SENSOR_AWAITING_CLOSE;
         // Reset subsequent sensors if in specific modes (as per .ino logic)
@@ -79,7 +79,7 @@ static void IRAM_ATTR sensor2_isr_handler(void* arg) {
         return;
     }
 
-    if (pin_level == HIGH) {
+    if (pin_level == 1) {
         if (current_mode == MODE_ALL_SENSORS) {
             if ((sensor1_state == SENSOR_AWAITING_CLOSE || sensor1_state == SENSOR_CLOSED) && sensor2_state == SENSOR_IDLE) {
                 sensor2_open_time_us = current_micros;
@@ -110,7 +110,7 @@ static void IRAM_ATTR sensor3_isr_handler(void* arg) {
         return;
     }
 
-    if (pin_level == HIGH) {
+    if (pin_level == 1) {
         if (current_mode == MODE_ALL_SENSORS) {
             if ((sensor2_state == SENSOR_AWAITING_CLOSE || sensor2_state == SENSOR_CLOSED) && sensor3_state == SENSOR_IDLE) {
                 sensor3_open_time_us = current_micros;

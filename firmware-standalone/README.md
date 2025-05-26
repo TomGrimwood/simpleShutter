@@ -43,31 +43,65 @@ The web interface is designed to display shutter speed sensor readings, calculat
 2.  Open a web browser on a device connected to the same network.
 3.  Navigate to `http://<ESP32_IP_ADDRESS>/` (replacing `<ESP32_IP_ADDRESS>` with the actual IP).
 
-### Web Interface Controls & Display
+### Web Interface - Precision Shutter Diagnostics
 
-The web interface provides the following controls and displays:
+The web interface provides a comprehensive suite for shutter diagnostics, offering detailed insights and control over the ESP32 sensor module.
 
-*   **Controls:**
-    *   **Mode Selection Dropdown:** Allows selecting the sensor measurement mode:
-        *   `All Sensors (S1, S2, S3)`: Uses all three sensors.
-        *   `Outer Sensors (S1, S3)`: Uses only the top and bottom sensors.
-        *   `Inner Sensor (S2)`: Uses only the middle sensor.
-    *   **Set Mode Button:** Applies the selected mode to the ESP32.
-    *   **Manual Reset Button:** Triggers a reset of all sensor states on the ESP32, preparing for a new measurement.
-    *   **Refresh Data Button:** Manually fetches the latest data from the ESP32.
-*   **Status Bar:**
-    *   **Current Mode:** Displays the active measurement mode on the ESP32 (e.g., "ALL", "OUTER", "INNER").
-    *   **Status:** Shows messages from the web UI (e.g., "Fetching data...", "Mode successfully set.", "Error...").
-*   **Data Display:**
-    *   **Sensor Open/Close Times:** Raw timestamps in microseconds (µs) when each active sensor beam is broken (open) and restored (close).
-        *   S1 (Top): `s1_open_us`, `s1_close_us`
-        *   S2 (Middle): `s2_open_us`, `s2_close_us`
-        *   S3 (Bottom): `s3_open_us`, `s3_close_us`
-    *   **Calculated Exposure Times:**
-        *   For each active sensor, the duration the sensor was obscured, displayed in µs and as a fractional second (e.g., `~1/125s`).
-    *   **Curtain Travel Times:**
-        *   Calculated time taken for the leading (opening) edge and trailing (closing) edge of the shutter curtains to travel between sensor pairs (e.g., S1 -> S2, S2 -> S3, S1 -> S3).
-*   **Auto-Refresh:** The web interface automatically refreshes the displayed data every 5 seconds.
+**Main Layout:**
+
+*   **Collapsible Configuration Panel (Left Sidebar):**
+    *   **S1-S3 Distance (mm):** Input for the actual physical distance between the outermost sensors (S1 and S3).
+    *   **Calibration Target Distance (mm):** Input for the distance used during a calibration phase (if applicable, for calculating a scaling factor).
+    *   **Time Scaling Factor:** Displays the calculated factor (Actual Dist. / Calib. Target Dist.), which can be used to adjust timing measurements if the sensor rig was calibrated against a known standard different from its current physical setup.
+*   **Main Content Area:**
+    *   **Status Bar:** Located at the top, it displays:
+        *   ESP32 Connection Status (e.g., "Connected", "Disconnected", "Error").
+        *   Current Operational Mode of the ESP32 sensor system (e.g., "All Sensors", "Outer Sensors", "Inner Sensor").
+        *   Last Communication Timestamp with the ESP32.
+    *   **Tabbed Navigation:** Allows switching between different views:
+        *   "Main Analysis" Tab
+        *   "Results Log" Tab
+
+**"Main Analysis" Tab:**
+
+This tab presents a detailed breakdown of the latest shutter measurement data:
+
+*   **Exposure & Shutter Speed Table:**
+    *   Displays individual exposure times for S1, S2, and S3 in milliseconds (ms).
+    *   Shows percentage comparisons of exposure times between S1 vs S2, and S2 vs S3.
+    *   Calculates and displays the average exposure time.
+    *   Converts exposure times to shutter speed equivalents (e.g., "1/125s", "1/250s", etc.) for each sensor and an average.
+*   **Curtain Travel Times & Comparison Table (ms):**
+    *   Shows travel times for Curtain 1 (opening/leading edge) and Curtain 2 (closing/trailing edge) between sensor pairs (S1->S2, S2->S3) and the total travel (S1->S3).
+    *   Provides intra-curtain percentage variance (e.g., S1->S2 vs S2->S3 for Curtain 1).
+    *   Displays inter-curtain percentage difference for each segment and total travel (e.g., Curtain 1 S1->S2 vs Curtain 2 S1->S2).
+*   **Analysis & Durations Table:**
+    *   **Shutter Fully Open Duration (ms):** An estimation of the effective time the entire frame might be exposed, typically derived from average exposure.
+    *   **Avg. Slit Width (mm):** Calculated average width of the shutter slit based on sensor distance, exposure time, and curtain travel time.
+    *   **Exposure Variation (% from avg):** A measure of consistency across the sensor points.
+*   **Raw Sensor Timestamps Table:**
+    *   Displays the raw open and close timestamps (S1, S2, S3) as captured by the ESP32.
+    *   Features a **Timestamp Unit Selector** (µs, ms, s) allowing the user to view these raw timestamps in their preferred unit.
+
+**"Results Log" Tab:**
+
+*   This tab provides a table logging key metrics from recent measurements. Each row typically includes a timestamp, mode, key exposure times, average speed, total curtain travel times, calculated slit width, and exposure variation.
+
+**Controls:**
+
+*   **Mode Selection Dropdown (in Status Bar):** Allows the user to switch the ESP32's sensor operation mode:
+    *   `All Sensors`: Utilizes S1, S2, and S3.
+    *   `Outer Sensors`: Utilizes S1 and S3 only.
+    *   `Inner Sensor`: Utilizes S2 only.
+    *   *(Changing the mode via the dropdown automatically sends the command to the ESP32 via the "Set Mode" functionality integrated into the selector.)*
+*   **Set Mode Button:** (Note: In the described advanced UI, mode changes are often tied directly to the dropdown selection's `onchange` event, implicitly calling the set mode API. If a separate button exists, it applies the dropdown's current value.)
+*   **Manual Reset Button (from previous UI):** Triggers a reset of all sensor states on the ESP32, preparing for a new measurement. *(This button might be part of the main UI or configuration panel in the new design)*.
+*   **Refresh Data Button (from previous UI):** Manually fetches the latest data from the ESP32. *(This button might be part of the main UI in the new design)*.
+*   **Timestamp Unit Selector (in Raw Sensor Timestamps table):** Allows changing the display unit for raw open/close times.
+
+**Auto-Refresh:**
+
+*   The web interface automatically fetches and updates the displayed data from the ESP32 periodically (e.g., every 5 seconds).
 
 ## API Endpoints
 
