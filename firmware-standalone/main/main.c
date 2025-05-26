@@ -35,10 +35,37 @@ static shutter_data_values_t g_latest_shutter_data;
 static SemaphoreHandle_t g_shutter_data_mutex;
 
 // Embedded file symbols
+// Index and original app.js (though app.js is no longer directly served, symbols might still be generated if not removed from CMake)
 extern const uint8_t index_html_start[] asm("_binary_index_html_start");
 extern const uint8_t index_html_end[]   asm("_binary_index_html_end");
-extern const uint8_t app_js_start[]     asm("_binary_app_js_start");
-extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
+// extern const uint8_t app_js_start[]     asm("_binary_app_js_start"); // No longer served directly
+// extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
+
+// New static files
+extern const uint8_t styles_css_start[] asm("_binary_static_css_styles_css_start");
+extern const uint8_t styles_css_end[]   asm("_binary_static_css_styles_css_end");
+
+extern const uint8_t api_js_start[] asm("_binary_static_js_api_js_start");
+extern const uint8_t api_js_end[]   asm("_binary_static_js_api_js_end");
+
+extern const uint8_t config_panel_js_start[] asm("_binary_static_js_config_panel_js_start");
+extern const uint8_t config_panel_js_end[]   asm("_binary_static_js_config_panel_js_end");
+
+extern const uint8_t data_updater_js_start[] asm("_binary_static_js_data_updater_js_start");
+extern const uint8_t data_updater_js_end[]   asm("_binary_static_js_data_updater_js_end");
+
+extern const uint8_t main_js_start[] asm("_binary_static_js_main_js_start");
+extern const uint8_t main_js_end[]   asm("_binary_static_js_main_js_end");
+
+extern const uint8_t results_log_js_start[] asm("_binary_static_js_results_log_js_start");
+extern const uint8_t results_log_js_end[]   asm("_binary_static_js_results_log_js_end");
+
+extern const uint8_t shutter_calculations_js_start[] asm("_binary_static_js_shutter_calculations_js_start");
+extern const uint8_t shutter_calculations_js_end[]   asm("_binary_static_js_shutter_calculations_js_end");
+
+extern const uint8_t ui_helpers_js_start[] asm("_binary_static_js_ui_helpers_js_start");
+extern const uint8_t ui_helpers_js_end[]   asm("_binary_static_js_ui_helpers_js_end");
+
 
 static int s_retry_num = 0;
 static bool s_webserver_started = false; // Flag to track if webserver is started
@@ -60,15 +87,74 @@ static esp_err_t root_get_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// URI handler for serving app.js
-static esp_err_t app_js_get_handler(httpd_req_t *req)
-{
-    ESP_LOGI(TAG_HTTP, "Serving app.js");
-    httpd_resp_set_type(req, "application/javascript");
-    const size_t app_js_size = (app_js_end - app_js_start);
-    httpd_resp_send(req, (const char *)app_js_start, app_js_size);
+// URI handler for serving app.js - This is now replaced by individual static JS handlers
+// static esp_err_t app_js_get_handler(httpd_req_t *req)
+// {
+//     ESP_LOGI(TAG_HTTP, "Serving app.js");
+//     httpd_resp_set_type(req, "application/javascript");
+//     const size_t app_js_size = (app_js_end - app_js_start);
+//     httpd_resp_send(req, (const char *)app_js_start, app_js_size);
+//     return ESP_OK;
+// }
+
+// --- Static CSS Handler ---
+static esp_err_t styles_css_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/css/styles.css");
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_send(req, (const char *)styles_css_start, styles_css_end - styles_css_start);
     return ESP_OK;
 }
+
+// --- Static JS Handlers ---
+static esp_err_t static_js_api_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/api.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)api_js_start, api_js_end - api_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_config_panel_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/config-panel.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)config_panel_js_start, config_panel_js_end - config_panel_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_data_updater_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/data-updater.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)data_updater_js_start, data_updater_js_end - data_updater_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_main_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/main.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)main_js_start, main_js_end - main_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_results_log_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/results-log.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)results_log_js_start, results_log_js_end - results_log_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_shutter_calculations_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/shutter-calculations.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)shutter_calculations_js_start, shutter_calculations_js_end - shutter_calculations_js_start);
+    return ESP_OK;
+}
+
+static esp_err_t static_js_ui_helpers_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG_HTTP, "Serving /static/js/ui-helpers.js");
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)ui_helpers_js_start, ui_helpers_js_end - ui_helpers_js_start);
+    return ESP_OK;
+}
+
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -235,14 +321,80 @@ static void start_webserver(void)
         };
         ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &root_uri));
 
-        // Register URI handler for /app.js
-        httpd_uri_t app_js_uri = {
-            .uri      = "/app.js",
+        // Register URI handler for /app.js - This is now removed
+        // httpd_uri_t app_js_uri = {
+        //     .uri      = "/app.js",
+        //     .method   = HTTP_GET,
+        //     .handler  = app_js_get_handler, // This handler is removed
+        //     .user_ctx = NULL
+        // };
+        // ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &app_js_uri));
+
+        // Register CSS handler
+        static const httpd_uri_t styles_css_uri = {
+            .uri      = "/static/css/styles.css",
             .method   = HTTP_GET,
-            .handler  = app_js_get_handler,
+            .handler  = styles_css_get_handler,
             .user_ctx = NULL
         };
-        ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &app_js_uri));
+        httpd_register_uri_handler(s_server, &styles_css_uri);
+        
+        // Register JS Handlers
+        static const httpd_uri_t static_js_api_uri = {
+            .uri      = "/static/js/api.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_api_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_api_uri);
+
+        static const httpd_uri_t static_js_config_panel_uri = {
+            .uri      = "/static/js/config-panel.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_config_panel_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_config_panel_uri);
+
+        static const httpd_uri_t static_js_data_updater_uri = {
+            .uri      = "/static/js/data-updater.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_data_updater_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_data_updater_uri);
+
+        static const httpd_uri_t static_js_main_uri = {
+            .uri      = "/static/js/main.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_main_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_main_uri);
+
+        static const httpd_uri_t static_js_results_log_uri = {
+            .uri      = "/static/js/results-log.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_results_log_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_results_log_uri);
+
+        static const httpd_uri_t static_js_shutter_calculations_uri = {
+            .uri      = "/static/js/shutter-calculations.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_shutter_calculations_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_shutter_calculations_uri);
+
+        static const httpd_uri_t static_js_ui_helpers_uri = {
+            .uri      = "/static/js/ui-helpers.js",
+            .method   = HTTP_GET,
+            .handler  = static_js_ui_helpers_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(s_server, &static_js_ui_helpers_uri);
 
         // Register URI handler for /api/getdata
         static const httpd_uri_t get_data_uri = {

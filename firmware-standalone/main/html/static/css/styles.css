@@ -1,0 +1,272 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    min-height: 100vh; /* Ensures footer is at bottom if content is short */
+    flex-direction: column; /* Allows footer to push to bottom */
+}
+
+.page-container {
+    display: flex;
+    flex-grow: 1; /* Allows main content to take up available space */
+}
+
+.config-panel {
+    background-color: #e9e9e9;
+    padding: 15px;
+    width: 280px; /* Fixed width */
+    border-right: 1px solid #ccc;
+    transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+    overflow: hidden; /* Hide content when collapsed */
+    display: flex;
+    flex-direction: column;
+}
+
+.config-panel.collapsed {
+    width: 40px; /* Width when collapsed */
+    padding: 15px 0;
+}
+
+.config-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; /* Add some space below the header */
+}
+
+.config-panel.collapsed .config-header-container h3 {
+    display: none; /* Hide "Configuration" text when collapsed */
+}
+
+#configPanelContent {
+    /* Content will be shown/hidden by JS */
+}
+
+.config-panel.collapsed #configPanelContent {
+    display: none;
+}
+
+
+.config-panel label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.config-panel input[type="text"],
+.config-panel input[type="number"],
+.config-panel select {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.config-panel .data-value { /* For timeScalingFactorDisplay */
+    display: block;
+    margin-top: 5px;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+
+.main-content {
+    flex-grow: 1; /* Takes remaining width */
+    padding: 20px;
+    background-color: #fff;
+    /* overflow-y: auto; /* If content might exceed viewport height */
+}
+
+
+.header {
+    background-color: #004080; /* Dark blue */
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5em;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+}
+
+.status-bar {
+    background-color: #e7e7e7;
+    padding: 10px;
+    margin-top: 0; /* No margin from header */
+    margin-bottom: 20px;
+    border-radius: 0 0 5px 5px; /* Rounded bottom corners */
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-left-group {
+    display: flex;
+    align-items: center;
+}
+
+.status-bar .data-value {
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+}
+.esp32-connected { color: #28a745; /* Green */ }
+.esp32-disconnected { color: #dc3545; /* Red */ }
+.esp32-unknown { color: #fd7e14; /* Orange */ }
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: right; /* Default to right for numbers */
+}
+
+th {
+    background-color: #f2f2f2;
+    text-align: center; /* Center align headers */
+}
+td.metric-label {
+    font-weight: bold;
+    text-align: left; /* Left align metric labels */
+    background-color: #f8f8f8;
+    width: 25%; /* Give metric labels a bit more space */
+}
+.section-header {
+    background-color: #e0e0e0;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.1em;
+    border-top: 2px solid #707070;
+    border-bottom: 2px solid #707070;
+}
+
+.data-value {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+.compare-value {
+    font-family: 'Courier New', Courier, monospace;
+    font-style: italic;
+    color: #555;
+}
+.compare-value-high-variance {
+    color: #dc3545; /* Red for high variance */
+    font-weight: bold;
+}
+.compare-value-low-variance {
+    color: #28a745; /* Green for low variance */
+}
+
+.error-message {
+    color: #dc3545; /* Red */
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #333;
+    color: white;
+    font-size: 0.8em;
+    /* position: fixed; */ /* If you want a sticky footer */
+    /* bottom: 0; */
+    /* width: 100%; */
+    margin-top: auto; /* Pushes footer to bottom in flex container */
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-button {
+    padding: 10px 15px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1em;
+    margin-right: 5px;
+    border-bottom: 3px solid transparent; /* For active indicator */
+}
+
+.tab-button.active {
+    border-bottom: 3px solid #004080; /* Active tab indicator */
+    font-weight: bold;
+    color: #004080;
+}
+
+.tab-content {
+    display: none; /* Hidden by default */
+}
+
+.tab-content.active {
+    display: block; /* Show active tab content */
+}
+
+#resultsLogTable th, #resultsLogTable td {
+    font-size: 0.85em;
+    padding: 6px;
+}
+
+/* Hide S3 related columns by default, show if mode needs them */
+/* This is better handled by JS by adding/removing a class to the table or specific cells */
+/* .sensor3-col { display: none; } */
+/* .mode-all .sensor3-col, .mode-outer .sensor3-col { display: table-cell; } */
+
+/* Hide S2 related columns by default, show if mode needs them */
+/* .sensor2-col { display: none; } */
+/* .mode-all .sensor2-col, .mode-inner .sensor2-col { display: table-cell; } */
+
+/* Hide S1 related columns by default, show if mode needs them */
+/* .sensor1-col { display: none; } */
+/* .mode-all .sensor1-col, .mode-outer .sensor1-col { display: table-cell; } */
+
+/* Responsive adjustments (optional) */
+@media (max-width: 768px) {
+    .page-container {
+        flex-direction: column;
+    }
+    .config-panel {
+        width: 100%; /* Full width on small screens */
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+    .config-panel.collapsed {
+        width: 100%; 
+        height: 40px; /* Collapse vertically */
+    }
+    .config-panel.collapsed .config-header-container h3 {
+        display: block; /* Show "Configuration" text when collapsed vertically */
+    }
+     .config-panel.collapsed #configPanelContent {
+        display: none;
+    }
+
+
+    .header, .status-bar, .footer {
+        border-radius: 0; /* Full width, no rounded corners */
+    }
+    table {
+        font-size: 0.8em; /* Smaller font on small screens */
+    }
+    th, td {
+        padding: 6px;
+    }
+}
