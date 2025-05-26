@@ -1,4 +1,32 @@
-body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; color: #000000; margin: 0; padding: 0; }
+@font-face {
+    font-family: 'FiraMonoNerdFont';
+    src: url('FiraMonoNerdFont-Regular.otf') format('opentype');
+    font-weight: normal; /* 400 */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FiraMonoNerdFont';
+    src: url('FiraMonoNerdFont-Bold.otf') format('opentype');
+    font-weight: bold; /* 700 */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FiraMonoNerdFontMono';
+    src: url('FiraMonoNerdFontMono-Regular.otf') format('opentype');
+    font-weight: normal; /* 400 */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FiraMonoNerdFontMono';
+    src: url('FiraMonoNerdFontMono-Bold.otf') format('opentype');
+    font-weight: bold; /* 700 */
+    font-style: normal;
+}
+
+body { font-family: 'FiraMonoNerdFont', "Times New Roman", Times, serif; background-color: #C0C0C0; color: #000000; margin: 0; padding: 0; }
 
 .page-container {
     display: flex;
@@ -68,18 +96,26 @@ body { font-family: "Times New Roman", Times, serif; background-color: #C0C0C0; 
     font-weight: bold;
     color: #333333;
 }
-#configPanelContent input[type="number"], 
+#configPanelContent input[type="number"] {
+    width: calc(100% - 12px); 
+    padding: 5px;
+    border: 1px inset #808080; /* This border is for the input itself if not wrapped by .input-with-unit */
+    font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace;
+    font-size: 10pt;
+    box-sizing: border-box;
+    background-color: #F0F0F0; /* This background is for the input itself if not wrapped by .input-with-unit */
+}
 #configPanelContent select { /* Added select styling */
     width: calc(100% - 12px); 
     padding: 5px;
     border: 1px inset #808080;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'FiraMonoNerdFont', "Times New Roman", Times, serif;
     font-size: 10pt;
     box-sizing: border-box;
     background-color: #F0F0F0;
 }
 .config-panel .data-value { 
-     font-family: "Courier New", Courier, monospace;
+     font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace;
      font-weight: bold;
      color: #0000FF;
 }
@@ -146,7 +182,7 @@ td.metric-label { font-weight: bold; text-align: left; }
 caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 .header { background-color: #000080; color: #FFFF00; padding: 10px; text-align: center; font-size: 18pt; font-weight: bold; border-bottom: 3px double #000000; }
 .footer { text-align: center; font-size: 9pt; margin-top: 20px; color: #505050; padding-bottom: 10px; }
-.data-value { font-family: "Courier New", Courier, monospace; font-weight: bold; color: #0000FF; text-align: right; }
+.data-value { font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace; font-weight: bold; color: #0000FF; text-align: right; }
 .status-bar {
     background-color: #A0A0A0;
     color: #000000;
@@ -159,7 +195,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
     align-items: center; 
 }
 .status-bar select {
-    font-family: "Times New Roman", Times, serif;
+    font-family: 'FiraMonoNerdFont', "Times New Roman", Times, serif;
     font-size: 9pt;
     margin-left: 5px;
     border: 1px inset #808080; 
@@ -171,7 +207,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 .error-message { color: #FF0000; font-weight: bold; }
 .sensor3-col { border-right: 3px solid #707070 !important; }
 .compare-value {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace;
     text-align: center;
     font-size: 10pt;
     white-space: nowrap; 
@@ -181,7 +217,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 .compare-header { font-size: 9pt; }
 .section-header { background-color: #B0B0B0; color: #000000; font-weight: bold; text-align: center; }
 .section-header select { 
-    font-family: "Times New Roman", Times, serif;
+    font-family: 'FiraMonoNerdFont', "Times New Roman", Times, serif;
     font-size: 9pt;
     margin-left: 10px;
     border: 1px inset #808080; 
@@ -210,7 +246,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
     border: 1px solid #A0A0A0;
     border-bottom: none;
     background-color: #E0E0E0;
-    font-family: "Times New Roman", Times, serif;
+    font-family: 'FiraMonoNerdFont', "Times New Roman", Times, serif;
     font-size: 11pt;
     margin-right: 5px;
     border-radius: 4px 4px 0 0;
@@ -280,7 +316,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
 #resultsLogTable td:nth-child(3) { text-align: left; }    
 #resultsLogTable td:nth-child(n+4) {
     text-align: right;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace;
 }
 
 /* New styles for input with unit */
@@ -301,7 +337,7 @@ caption { font-size: 14pt; font-weight: bold; padding: 8px; color: #000080; }
     background-color: transparent;
     flex-grow: 1;
     padding: 5px; /* Original input padding */
-    font-family: "Courier New", Courier, monospace; /* Original input font */
+    font-family: 'FiraMonoNerdFontMono', "Courier New", Courier, monospace; /* Original input font */
     font-size: 10pt; /* Original input font size */
     color: #000000; /* Ensure text is visible, matches original body text color */
     min-width: 50px; /* Prevent input from becoming too small */
