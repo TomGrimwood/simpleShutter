@@ -1,0 +1,5 @@
+{
+    "idf.monitorPort": "COM4",
+    "idf.flashType": "UART",
+    "idf.portWin": "COM4",
+}

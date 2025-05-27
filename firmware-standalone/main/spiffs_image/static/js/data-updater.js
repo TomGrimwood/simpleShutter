@@ -68,8 +68,8 @@ function updateShutterDisplay(rawData) { // rawData comes from ESP32's /api/getd
     setText('exp_ms_s1', exp_ms_s1, 3);
     setText('exp_ms_s2', exp_ms_s2, 3);
     setText('exp_ms_s3', exp_ms_s3, 3);
-    calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2'); // from shutter-calculations.js
-    calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3'); // from shutter-calculations.js
+    calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2'); // from sc.js
+    calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3'); // from sc.js
 
     // --- 3. Shutter Speeds (Hz equivalent = 1 / exposure_seconds) ---
     const getHz = (exp_us) => (exp_us > 0) ? (1.0 / (exp_us / 1000000.0)) : null;

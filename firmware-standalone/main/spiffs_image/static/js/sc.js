@@ -1,4 +1,4 @@
-// shutter-calculations.js
+// sc.js
 
 // Helper to calculate and display percentage difference or ratio
 function calculateAndDisplayComparison(value1, value2, displayElementId, type = 'percentage_diff') {

@@ -5,7 +5,7 @@ function _calculateAndSetScalingFactor() {
     const calibDist = parseFloat(document.getElementById('calibrationTargetDistanceConfig').value);
 
     if (!isNaN(actualDist) && !isNaN(calibDist) && calibDist > 0) {
-        const factor = actualDist / calibDist;
+        const factor = calibDist / actualDist;
         document.getElementById('timeScalingFactorDisplay').textContent = factor.toFixed(4);
         return factor;
     }
