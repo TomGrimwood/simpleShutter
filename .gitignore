@@ -10,3 +10,4 @@ wheels/
 .venv
 web-rs/target
 web-rs/Cargo.lock
+firmware-standalone/managed_components/
