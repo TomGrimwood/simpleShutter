@@ -22,12 +22,12 @@
         </div>
         <div id="configPanelContent">
             <div>
-                <label for="totalSensorDistanceConfig">Actual S1-S3 Dist. (mm) / Frame Height:</label>
-                <input type="number" id="totalSensorDistanceConfig" value="24" step="0.1"> <!-- Default to 24mm (Full Frame example) -->
+                <label for="totalSensorDistanceConfig">Measured Sensor Range (mm)</label>
+                <input type="number" id="totalSensorDistanceConfig" value="30" step="0.1"> <!-- Default to 24mm (Full Frame example) -->
             </div>
             <div>
-                <label for="calibrationTargetDistanceConfig">Calib. Target Dist. (mm):</label>
-                <input type="number" id="calibrationTargetDistanceConfig" value="24" step="0.1"> <!-- Default to same if no specific cal target -->
+                <label for="calibrationTargetDistanceConfig">Calibration Distance (mm):</label>
+                <input type="number" id="calibrationTargetDistanceConfig" value="32" step="0.1"> <!-- Default to same if no specific cal target -->
             </div>
             <div>
                 <label>Time Scaling Factor:</label>
@@ -68,11 +68,11 @@
                     <tr><td colspan="7" class="section-header">Exposure & Shutter Speed</td></tr>
                     <tr>
                         <th class="metric-label">Metric</th>
-                        <th>Sensor 1 (S1)</th>
+                        <th>Sensor 1</th>
                         <th class="compare-header">S1 vs S2</th>
-                        <th>Sensor 2 (S2)</th>
+                        <th>Sensor 2</th>
                         <th class="compare-header">S2 vs S3</th>
-                        <th>Sensor 3 (S3)</th>
+                        <th>Sensor 3</th>
                         <th>Average</th>
                     </tr>
                     <tr>
@@ -100,7 +100,7 @@
                         <th colspan="2">S1 to S2</th>
                         <th class="compare-header">% Var</th>
                         <th colspan="2">S2 to S3</th>
-                        <th>Total (S1-S3)</th>
+                        <th>S1 to S3</th>
                     </tr>
                     <tr>
                         <td class="metric-label">Curtain 1 Travel</td>

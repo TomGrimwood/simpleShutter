@@ -324,6 +324,25 @@ table#shutterDataTable caption, table#resultsLogTable caption {
     font-size: 13px; /* Increased from 10px */
     color: #A0A0A0;
 }
+
+/* Center align specific data-value cells in the "Curtain Travel Times" section */
+#shutterDataTable #exp_ms_s1,
+#shutterDataTable #exp_ms_s2,
+#shutterDataTable #exp_ms_s3,
+#shutterDataTable #exp_ms_avg,
+#shutterDataTable #hz_s1,
+#shutterDataTable #hz_s2,
+#shutterDataTable #hz_s3,
+#shutterDataTable #hz_avg,
+#shutterDataTable #ct_c1_s1s2_time,
+#shutterDataTable #ct_c1_s2s3_time,
+#shutterDataTable #ct_c1_total_time,
+#shutterDataTable #ct_c2_s1s2_time,
+#shutterDataTable #ct_c2_s2s3_time,
+#shutterDataTable #ct_c2_total_time {
+    text-align: center;
+}
+
 .compare-value-high-variance { color: #FF8080 !important; font-weight: bold; }
 .compare-value-low-variance { color: #77DD77 !important; }
 

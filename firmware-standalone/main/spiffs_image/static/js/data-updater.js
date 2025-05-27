@@ -239,42 +239,68 @@ function updateShutterDisplay(rawData) {
          setText('ct_c1c2_total_compare_pct', null);
     }
 
-    // --- 6. Full Open Duration & Slit Width ---
+// --- 6. Full Open Duration & Slit Width ---
+    const frameHeightMm = getConfigValue('calibrationTargetDistanceConfig', null); // Get configured frame height, default to null
+
     let fullOpenDurationMs = null;
-    if (avgExpMs !== null && c1_total_scaled_ms !== null && c1_total_scaled_ms > 0) {
+    // Calculate Full Open Duration if possible
+    // Prerequisites: avgExpMs is a valid number, c1_total_scaled_ms is a positive number.
+    if (avgExpMs !== null && typeof avgExpMs === 'number' &&
+        c1_total_scaled_ms !== null && typeof c1_total_scaled_ms === 'number' && c1_total_scaled_ms > 0) {
         fullOpenDurationMs = Math.max(0, avgExpMs - c1_total_scaled_ms);
-    } else if (avgExpMs !== null && showTotalTravel && c1_total_scaled_ms === null) {
-        // Error only if C1 total travel time is expected (showTotalTravel) but missing
-        errors.push("Full Open Duration: C1 Total Travel Time (scaled) is unavailable.");
+    } else {
+        // Add errors if Full Open Duration cannot be calculated due to missing/invalid components
+        if (avgExpMs === null && (showS1 || showS2 || showS3)) { // avgExpMs is required
+            // Avoid adding duplicate error if already present from other calculations
+            if (!errors.some(e => e.includes("Average Exposure Time"))) {
+                errors.push("Full Open Duration: Average Exposure Time is unavailable.");
+            }
+        } else if (avgExpMs !== null && showTotalTravel && (c1_total_scaled_ms === null || c1_total_scaled_ms <= 0)) {
+            // c1_total_scaled_ms is required if showTotalTravel is true and avgExpMs is present
+            if (!errors.some(e => e.includes("C1 Total Travel Time"))) {
+                 errors.push("Full Open Duration: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
+            }
+        }
     }
-    setText('open_time_duration_ms', fullOpenDurationMs, 3, ' ms'); 
+    // Display Full Open Duration. Show 0.00 for 0ms, otherwise default (3dp).
+    setText('open_time_duration_ms', fullOpenDurationMs, (fullOpenDurationMs === 0 ? 2 : 3), ' ms');
 
     let effectiveSlitWidthMm = null;
-    if (fullOpenDurationMs !== null) { // Condition 1: fullOpenDurationMs must be calculable and known
-        if (fullOpenDurationMs > 0) { // Condition 2: If frame was fully open, slit width is not applicable in the narrow sense
-            effectiveSlitWidthMm = null; 
-            // errors.push("Slit Width: N/A as frame was fully open."); // Optional informational message
-        } else { // Condition 3: fullOpenDurationMs is 0. Now calculate slit width if other inputs valid.
-                 // This means avgExpMs <= c1_total_scaled_ms.
-                 // avgExpMs and c1_total_scaled_ms are known to be valid and c1_total_scaled_ms > 0 from fullOpenDurationMs check.
-            if (frameHeightMm > 0) { // timeScalingFactor > 0 is implicitly handled by c1_total_scaled_ms > 0
-                const calculatedSlitWidth = (frameHeightMm / c1_total_scaled_ms) * avgExpMs; // avgExpMs can be 0 here
-                effectiveSlitWidthMm = Math.min(frameHeightMm, Math.max(0, calculatedSlitWidth)); // Ensure slit width isn't negative if avgExpMs was unexpectedly negative
-            } else {
-                 if (!(frameHeightMm > 0)) {
-                     errors.push("Slit Width: Frame Height (Actual S1-S3 Dist.) must be positive.");
-                 }
+    // Calculate Effective Slit Width if possible
+    // Prerequisites: frameHeightMm > 0, avgExpMs >= 0, c1_total_scaled_ms > 0.
+    if (frameHeightMm === null || typeof frameHeightMm !== 'number' || frameHeightMm <= 0) {
+        if (!errors.some(e => e.includes("Frame Height"))) {
+            errors.push("Slit Width: Frame Height (Actual S1-S3 Dist.) must be positive and configured.");
+        }
+    } else if (avgExpMs === null || typeof avgExpMs !== 'number' || avgExpMs < 0) {
+        // Only push error if exposure data was generally expected for the current mode
+        if (showS1 || showS2 || showS3) {
+            if (!errors.some(e => e.includes("Average Exposure Time"))) {
+                errors.push("Slit Width: Average Exposure Time is invalid or unavailable.");
+            }
+        }
+    } else if (c1_total_scaled_ms === null || typeof c1_total_scaled_ms !== 'number' || c1_total_scaled_ms <= 0) {
+        // Only push error if C1 travel time was expected for the current mode and avgExpMs is valid
+        if (showTotalTravel && avgExpMs !== null) {
+             if (!errors.some(e => e.includes("C1 Total Travel Time"))) {
+                errors.push("Slit Width: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
             }
         }
     } else {
-        // fullOpenDurationMs is null. This means avgExpMs was null, or c1_total_scaled_ms was null/invalid.
-        // Slit width cannot be calculated.
-        if (avgExpMs === null && (showS1 || showS2 || showS3)) {
-             errors.push("Slit Width: Average Exposure Time is unavailable.");
-        } else if (showTotalTravel && avgExpMs !== null && avgExpMs > 0) { // avgExpMs known, but c1_total_scaled_ms is the issue
-            if (!(c1_total_scaled_ms !== null && c1_total_scaled_ms > 0)) {
-                 errors.push("Slit Width: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
-            }
+        // All direct inputs (frameHeightMm, avgExpMs, c1_total_scaled_ms) are valid for slit width calculation.
+        // We can use the already calculated fullOpenDurationMs or re-derive its logic here for clarity.
+        // For consistency, let's use the logic for full open duration directly:
+        const currentFullOpenDuration = Math.max(0, avgExpMs - c1_total_scaled_ms);
+
+        if (currentFullOpenDuration > 0) {
+            // Frame was fully open. Effective slit width is the full frame height.
+            effectiveSlitWidthMm = null;
+        } else { // currentFullOpenDuration is 0 (i.e., avgExpMs <= c1_total_scaled_ms)
+            // Frame was not fully open, or exactly at the boundary.
+            const calculatedSlitWidth = (frameHeightMm / c1_total_scaled_ms) * avgExpMs;
+            // avgExpMs can be 0, resulting in 0 slit width.
+            // Since avgExpMs <= c1_total_scaled_ms, calculatedSlitWidth will be <= frameHeightMm.
+            effectiveSlitWidthMm = Math.max(0, calculatedSlitWidth); // Ensure non-negative.
         }
     }
     setText('slit_width_mm', effectiveSlitWidthMm, 2, ' mm');
