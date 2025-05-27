@@ -102,11 +102,9 @@ function updateShutterDisplay(rawData) {
     const errors = []; 
 
     // --- 0. Get Configuration for Calculations ---
-    const totalSensorDistanceMm = getConfigValue('totalSensorDistanceConfig', 30.0);
     const timeScalingFactor = getCurrentTimeScalingFactor(); 
 
     // --- 1. Raw times (already in µs from ESP32) ---
-    // Use nullish coalescing or check if properties exist in rawData before assigning
     const s1_o_us = rawData.s1_open_us ?? null;
     const s1_c_us = rawData.s1_close_us ?? null;
     const s2_o_us = rawData.s2_open_us ?? null;
@@ -115,6 +113,7 @@ function updateShutterDisplay(rawData) {
     const s3_c_us = rawData.s3_close_us ?? null;
 
     const selectedUnit = DOM.timestampUnitSelector.value;
+    // formatRawTimestamp now includes units, so setText does not need a unit parameter for these
     setText('raw_s1', formatRawTimestamp(s1_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s1_c_us, selectedUnit));
     setText('raw_s2', formatRawTimestamp(s2_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s2_c_us, selectedUnit));
     setText('raw_s3', formatRawTimestamp(s3_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s3_c_us, selectedUnit));
@@ -124,15 +123,15 @@ function updateShutterDisplay(rawData) {
     
     let exp_us_s1 = 0, exp_us_s2 = 0, exp_us_s3 = 0;
 
-    if (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER") {
+    if (showS1) {
         exp_us_s1 = getExposureUs(s1_o_us, s1_c_us);
         if (s1_o_us > 0 && s1_c_us > 0 && s1_c_us <= s1_o_us && s1_o_us !== s1_c_us) errors.push("S1: Close time before or at open time.");
     }
-    if (currentDisplayMode === "ALL" || currentDisplayMode === "INNER") {
+    if (showS2) {
         exp_us_s2 = getExposureUs(s2_o_us, s2_c_us);
         if (s2_o_us > 0 && s2_c_us > 0 && s2_c_us <= s2_o_us && s2_o_us !== s2_c_us) errors.push("S2: Close time before or at open time.");
     }
-    if (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER") {
+    if (showS3) {
         exp_us_s3 = getExposureUs(s3_o_us, s3_c_us);
         if (s3_o_us > 0 && s3_c_us > 0 && s3_c_us <= s3_o_us && s3_o_us !== s3_c_us) errors.push("S3: Close time before or at open time.");
     }
@@ -141,12 +140,11 @@ function updateShutterDisplay(rawData) {
     const exp_ms_s2 = exp_us_s2 > 0 ? exp_us_s2 / 1000.0 : null;
     const exp_ms_s3 = exp_us_s3 > 0 ? exp_us_s3 / 1000.0 : null;
 
-    setText('exp_ms_s1', showS1 ? exp_ms_s1 : null, 3);
-    setText('exp_ms_s2', showS2 ? exp_ms_s2 : null, 3);
-    setText('exp_ms_s3', showS3 ? exp_ms_s3 : null, 3);
+    setText('exp_ms_s1', showS1 ? exp_ms_s1 : null, 3, ' ms');
+    setText('exp_ms_s2', showS2 ? exp_ms_s2 : null, 3, ' ms');
+    setText('exp_ms_s3', showS3 ? exp_ms_s3 : null, 3, ' ms');
     if (showS1 && showS2) calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2'); else setText('exp_compare_s1s2', null);
     if (showS2 && showS3) calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3'); else setText('exp_compare_s2s3', null);
-
 
     // --- 3. Shutter Speeds (Hz equivalent = 1 / exposure_seconds) ---
     const getHz = (exp_us) => (exp_us > 0) ? (1.0 / (exp_us / 1000000.0)) : null;
@@ -154,9 +152,9 @@ function updateShutterDisplay(rawData) {
     const hz_s2_val = getHz(exp_us_s2);
     const hz_s3_val = getHz(exp_us_s3);
 
-    setText('hz_s1', showS1 ? hz_s1_val : null, (hz_s1_val !== null && isFinite(hz_s1_val)) ? 2 : undefined);
-    setText('hz_s2', showS2 ? hz_s2_val : null, (hz_s2_val !== null && isFinite(hz_s2_val)) ? 2 : undefined);
-    setText('hz_s3', showS3 ? hz_s3_val : null, (hz_s3_val !== null && isFinite(hz_s3_val)) ? 2 : undefined);
+    setText('hz_s1', showS1 ? hz_s1_val : null, (hz_s1_val !== null && isFinite(hz_s1_val)) ? 2 : undefined, ' Hz');
+    setText('hz_s2', showS2 ? hz_s2_val : null, (hz_s2_val !== null && isFinite(hz_s2_val)) ? 2 : undefined, ' Hz');
+    setText('hz_s3', showS3 ? hz_s3_val : null, (hz_s3_val !== null && isFinite(hz_s3_val)) ? 2 : undefined, ' Hz');
 
     // --- 4. Average Exposure and Hz ---
     let validExposuresMs = [];
@@ -168,7 +166,7 @@ function updateShutterDisplay(rawData) {
     if (validExposuresMs.length > 0) {
         avgExpMs = validExposuresMs.reduce((a, b) => a + b, 0) / validExposuresMs.length;
     }
-    setText('exp_ms_avg', avgExpMs, 3);
+    setText('exp_ms_avg', avgExpMs, 3, ' ms');
 
     let validHz = [];
     function parseHz(val) { return (val !== null && isFinite(val)) ? val : null; }
@@ -181,50 +179,50 @@ function updateShutterDisplay(rawData) {
     if (validHz.length > 0) {
         avgHz = validHz.reduce((a, b) => a + b, 0) / validHz.length;
     }
-    setText('hz_avg', avgHz, 2);
+    setText('hz_avg', avgHz, 2, ' Hz');
     
     // --- 5. Curtain Travel Times ---
     let c1_s1s2_us = 0, c1_s2s3_us = 0, c1_s1s3_us = 0;
     let c2_s1s2_us = 0, c2_s2s3_us = 0, c2_s1s3_us = 0;
 
-    if (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER") {
+    if (showTotalTravel) { // S1-S3 calculations
         if (s1_o_us > 0 && s3_o_us > s1_o_us) c1_s1s3_us = s3_o_us - s1_o_us;
-        else if (s1_o_us > 0 && s3_o_us > 0 && s1_o_us !== s3_o_us) errors.push("C1: S3 open not after S1 open.");
+        else if (s1_o_us > 0 && s3_o_us > 0 && s1_o_us !== s3_o_us) errors.push("C1: S3 open not after S1 open for total travel.");
         
         if (s1_c_us > 0 && s3_c_us > s1_c_us) c2_s1s3_us = s3_c_us - s1_c_us;
-        else if (s1_c_us > 0 && s3_c_us > 0 && s1_c_us !== s3_c_us) errors.push("C2: S3 close not after S1 close.");
+        else if (s1_c_us > 0 && s3_c_us > 0 && s1_c_us !== s3_c_us) errors.push("C2: S3 close not after S1 close for total travel.");
     }
-    if (currentDisplayMode === "ALL") {
+    if (showAllSegments) { // S1-S2 and S2-S3 calculations
         if (s1_o_us > 0 && s2_o_us > s1_o_us) c1_s1s2_us = s2_o_us - s1_o_us;
-        else if (s1_o_us > 0 && s2_o_us > 0 && s1_o_us !== s2_o_us) errors.push("C1: S2 open not after S1 open.");
+        else if (s1_o_us > 0 && s2_o_us > 0 && s1_o_us !== s2_o_us) errors.push("C1: S2 open not after S1 open for segment.");
         
         if (s2_o_us > 0 && s3_o_us > s2_o_us) c1_s2s3_us = s3_o_us - s2_o_us;
-        else if (s2_o_us > 0 && s3_o_us > 0 && s2_o_us !== s3_o_us) errors.push("C1: S3 open not after S2 open.");
+        else if (s2_o_us > 0 && s3_o_us > 0 && s2_o_us !== s3_o_us) errors.push("C1: S3 open not after S2 open for segment.");
         
         if (s1_c_us > 0 && s2_c_us > s1_c_us) c2_s1s2_us = s2_c_us - s1_c_us;
-        else if (s1_c_us > 0 && s2_c_us > 0 && s1_c_us !== s2_c_us) errors.push("C2: S2 close not after S1 close.");
+        else if (s1_c_us > 0 && s2_c_us > 0 && s1_c_us !== s2_c_us) errors.push("C2: S2 close not after S1 close for segment.");
         
         if (s2_c_us > 0 && s3_c_us > s2_c_us) c2_s2s3_us = s3_c_us - s2_c_us;
-        else if (s2_c_us > 0 && s3_c_us > 0 && s2_c_us !== s3_c_us) errors.push("C2: S3 close not after S2 close.");
+        else if (s2_c_us > 0 && s3_c_us > 0 && s2_c_us !== s3_c_us) errors.push("C2: S3 close not after S2 close for segment.");
     }
     
     const toScaledMs = (val_us) => (val_us > 0) ? (val_us * timeScalingFactor / 1000.0) : null;
 
     const c1_s1s2_scaled_ms = toScaledMs(c1_s1s2_us);
     const c1_s2s3_scaled_ms = toScaledMs(c1_s2s3_us);
-    const c1_total_scaled_ms = toScaledMs(c1_s1s3_us);
-    setText('ct_c1_s1s2_time', showAllSegments ? c1_s1s2_scaled_ms : null, 3);
-    setText('ct_c1_s2s3_time', showAllSegments ? c1_s2s3_scaled_ms : null, 3);
-    setText('ct_c1_total_time', showTotalTravel ? c1_total_scaled_ms : null, 3);
+    const c1_total_scaled_ms = toScaledMs(c1_s1s3_us); 
+    setText('ct_c1_s1s2_time', showAllSegments ? c1_s1s2_scaled_ms : null, 3, ' ms');
+    setText('ct_c1_s2s3_time', showAllSegments ? c1_s2s3_scaled_ms : null, 3, ' ms');
+    setText('ct_c1_total_time', showTotalTravel ? c1_total_scaled_ms : null, 3, ' ms');
     if (showAllSegments) calculateAndDisplayComparison(c1_s1s2_scaled_ms, c1_s2s3_scaled_ms, 'ct_c1_intra_pct_var');
     else setText('ct_c1_intra_pct_var', null);
 
     const c2_s1s2_scaled_ms = toScaledMs(c2_s1s2_us);
     const c2_s2s3_scaled_ms = toScaledMs(c2_s2s3_us);
     const c2_total_scaled_ms = toScaledMs(c2_s1s3_us);
-    setText('ct_c2_s1s2_time', showAllSegments ? c2_s1s2_scaled_ms : null, 3);
-    setText('ct_c2_s2s3_time', showAllSegments ? c2_s2s3_scaled_ms : null, 3);
-    setText('ct_c2_total_time', showTotalTravel ? c2_total_scaled_ms : null, 3);
+    setText('ct_c2_s1s2_time', showAllSegments ? c2_s1s2_scaled_ms : null, 3, ' ms');
+    setText('ct_c2_s2s3_time', showAllSegments ? c2_s2s3_scaled_ms : null, 3, ' ms');
+    setText('ct_c2_total_time', showTotalTravel ? c2_total_scaled_ms : null, 3, ' ms');
     if (showAllSegments) calculateAndDisplayComparison(c2_s1s2_scaled_ms, c2_s2s3_scaled_ms, 'ct_c2_intra_pct_var');
     else setText('ct_c2_intra_pct_var', null);
 
@@ -241,22 +239,46 @@ function updateShutterDisplay(rawData) {
          setText('ct_c1c2_total_compare_pct', null);
     }
 
-    // --- 6. Shutter Fully Open Duration & Slit Width ---
-    setText('open_time_duration_ms', avgExpMs, 3); 
+    // --- 6. Full Open Duration & Slit Width ---
+    let fullOpenDurationMs = null;
+    if (avgExpMs !== null && c1_total_scaled_ms !== null && c1_total_scaled_ms > 0) {
+        fullOpenDurationMs = Math.max(0, avgExpMs - c1_total_scaled_ms);
+    } else if (avgExpMs !== null && showTotalTravel && c1_total_scaled_ms === null) {
+        // Error only if C1 total travel time is expected (showTotalTravel) but missing
+        errors.push("Full Open Duration: C1 Total Travel Time (scaled) is unavailable.");
+    }
+    setText('open_time_duration_ms', fullOpenDurationMs, 3, ' ms'); 
 
-    let avg_slit_width_mm = null;
-    if (avgExpMs !== null && avgExpMs > 0 && totalSensorDistanceMm > 0 && timeScalingFactor > 0) {
-        const avg_exp_s = avgExpMs / 1000.0;
-        const avg_c_total_s = (showTotalTravel && c1_s1s3_us > 0) ? (c1_s1s3_us * timeScalingFactor / 1000000.0) :
-                              ((showTotalTravel && c2_s1s3_us > 0) ? (c2_s1s3_us * timeScalingFactor / 1000000.0) : 0);
-        
-        if (avg_c_total_s > 0) {
-            avg_slit_width_mm = totalSensorDistanceMm * avg_exp_s / avg_c_total_s;
-        } else if (showTotalTravel) { 
-            errors.push("Cannot calculate slit width: Avg curtain travel time is zero or S1-S3 not active/valid.");
+    let effectiveSlitWidthMm = null;
+    if (fullOpenDurationMs !== null) { // Condition 1: fullOpenDurationMs must be calculable and known
+        if (fullOpenDurationMs > 0) { // Condition 2: If frame was fully open, slit width is not applicable in the narrow sense
+            effectiveSlitWidthMm = null; 
+            // errors.push("Slit Width: N/A as frame was fully open."); // Optional informational message
+        } else { // Condition 3: fullOpenDurationMs is 0. Now calculate slit width if other inputs valid.
+                 // This means avgExpMs <= c1_total_scaled_ms.
+                 // avgExpMs and c1_total_scaled_ms are known to be valid and c1_total_scaled_ms > 0 from fullOpenDurationMs check.
+            if (frameHeightMm > 0) { // timeScalingFactor > 0 is implicitly handled by c1_total_scaled_ms > 0
+                const calculatedSlitWidth = (frameHeightMm / c1_total_scaled_ms) * avgExpMs; // avgExpMs can be 0 here
+                effectiveSlitWidthMm = Math.min(frameHeightMm, Math.max(0, calculatedSlitWidth)); // Ensure slit width isn't negative if avgExpMs was unexpectedly negative
+            } else {
+                 if (!(frameHeightMm > 0)) {
+                     errors.push("Slit Width: Frame Height (Actual S1-S3 Dist.) must be positive.");
+                 }
+            }
+        }
+    } else {
+        // fullOpenDurationMs is null. This means avgExpMs was null, or c1_total_scaled_ms was null/invalid.
+        // Slit width cannot be calculated.
+        if (avgExpMs === null && (showS1 || showS2 || showS3)) {
+             errors.push("Slit Width: Average Exposure Time is unavailable.");
+        } else if (showTotalTravel && avgExpMs !== null && avgExpMs > 0) { // avgExpMs known, but c1_total_scaled_ms is the issue
+            if (!(c1_total_scaled_ms !== null && c1_total_scaled_ms > 0)) {
+                 errors.push("Slit Width: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
+            }
         }
     }
-    setText('slit_width_mm', avg_slit_width_mm, 2);
+    setText('slit_width_mm', effectiveSlitWidthMm, 2, ' mm');
+
 
     // --- 7. Exposure Variation % ---
     let exp_var_pct = null;
@@ -266,7 +288,9 @@ function updateShutterDisplay(rawData) {
         const stdDev = Math.sqrt(sumOfSquares / validExposuresMs.length);
         exp_var_pct = (stdDev / avgExpMs) * 100.0;
     }
-    setText('exp_var_pct', exp_var_pct, 2, exp_var_pct === null ? '' : '%');
+    // Pass unit with leading space for consistency
+    setText('exp_var_pct', exp_var_pct, 2, (exp_var_pct === null || !isFinite(exp_var_pct)) ? '' : ' %');
+
 
     // --- Display errors ---
     if (DOM.errorDisplay && errors.length > 0) {
@@ -279,7 +303,7 @@ function updateShutterDisplay(rawData) {
     }
     
     if (typeof addResultToLog === 'function' && 
-        (s1_o_us || s1_c_us || s2_o_us || s2_c_us || s3_o_us || s3_c_us) ) { // Only log if there's some actual data
+        (s1_o_us || s1_c_us || s2_o_us || s2_c_us || s3_o_us || s3_c_us) ) { 
          addResultToLog();
     }
 }
@@ -296,13 +320,12 @@ function updateEsp32Status(isConnected, message, lastSeenTimestamp) {
         }
     }
     if (DOM.lastUpdate) {
-        if (lastSeenTimestamp && isConnected) { // Only update timestamp if connected
+        if (lastSeenTimestamp && isConnected) { 
             const updateTime = new Date(lastSeenTimestamp);
             DOM.lastUpdate.textContent = updateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
         } else if (!isConnected) {
              DOM.lastUpdate.textContent = 'N/A';
         }
-        // If connected but no timestamp, don't change it.
     }
 }
 

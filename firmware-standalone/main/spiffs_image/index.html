@@ -1,17 +1,15 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Precision Shutter Diagnostics Interface</title>
+    <title>Precision Shutter Diag.</title>
     <meta charset="UTF-8"> <!-- Changed to UTF-8 -->
     <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <!-- <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/13_portrait.png"> -->
-    <!-- <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="/13_landscape.png">     -->
-    <meta name="apple-mobile-web-app-title" content="iPSD"> <!-- Optional: Short name for Home screen -->
+    <meta name="apple-mobile-web-app-title" content="PSD"> <!-- Optional: Short name for Home screen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <!-- Options: default, black, black-translucent -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"> <!-- Options: default, black, black-translucent -->
 </head>
 
 <body>
@@ -24,12 +22,12 @@
         </div>
         <div id="configPanelContent">
             <div>
-                <label for="totalSensorDistanceConfig">Actual S1-S3 Dist. (mm):</label>
-                <input type="number" id="totalSensorDistanceConfig" value="30" step="0.1">
+                <label for="totalSensorDistanceConfig">Actual S1-S3 Dist. (mm) / Frame Height:</label>
+                <input type="number" id="totalSensorDistanceConfig" value="24" step="0.1"> <!-- Default to 24mm (Full Frame example) -->
             </div>
             <div>
                 <label for="calibrationTargetDistanceConfig">Calib. Target Dist. (mm):</label>
-                <input type="number" id="calibrationTargetDistanceConfig" value="32" step="0.1">
+                <input type="number" id="calibrationTargetDistanceConfig" value="24" step="0.1"> <!-- Default to same if no specific cal target -->
             </div>
             <div>
                 <label>Time Scaling Factor:</label>
@@ -128,7 +126,7 @@
 
                     <tr><td colspan="7" class="section-header">Analysis & Durations</td></tr>
                     <tr>
-                        <td class="metric-label">Avg. Effective Exposure (ms)</td>
+                        <td class="metric-label">Full Open Duration (ms)</td>
                         <td id="open_time_duration_ms" class="data-value" colspan="6">---</td>
                     </tr>
                     <tr>
@@ -181,6 +179,7 @@
                         <th>Avg Speed (Hz)</th>
                         <th>C1 Total (ms)</th>
                         <th>C2 Total (ms)</th>
+                        <th>FullOpen (ms)</th> <!-- New Column -->
                         <th>Slit (mm)</th>
                         <th>Exp Var (%)</th>
                     </tr>

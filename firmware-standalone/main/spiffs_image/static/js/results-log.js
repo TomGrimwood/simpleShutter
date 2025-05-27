@@ -24,6 +24,7 @@ function addResultToLog() {
         avg_hz: getText('hz_avg', '---'),
         c1_total_ms: getText('ct_c1_total_time', '---'),
         c2_total_ms: getText('ct_c2_total_time', '---'),
+        full_open_duration_ms: getText('open_time_duration_ms', '---'), // New field
         slit_mm: getText('slit_width_mm', '---'),
         exp_var_pct: getText('exp_var_pct', '---') // getText will trim and handle "---"
     };
@@ -39,6 +40,7 @@ function addResultToLog() {
             newLogEntry.avg_hz === lastLoggedEntry.avg_hz &&
             newLogEntry.c1_total_ms === lastLoggedEntry.c1_total_ms &&
             newLogEntry.c2_total_ms === lastLoggedEntry.c2_total_ms &&
+            newLogEntry.full_open_duration_ms === lastLoggedEntry.full_open_duration_ms && // New field in check
             newLogEntry.slit_mm === lastLoggedEntry.slit_mm &&
             newLogEntry.exp_var_pct === lastLoggedEntry.exp_var_pct)
         {
@@ -80,6 +82,7 @@ function renderResultsLogTable() {
         row.insertCell().textContent = entry.avg_hz;
         row.insertCell().textContent = entry.c1_total_ms;
         row.insertCell().textContent = entry.c2_total_ms;
+        row.insertCell().textContent = entry.full_open_duration_ms; // New Cell
         row.insertCell().textContent = entry.slit_mm;
         row.insertCell().textContent = entry.exp_var_pct;
     });

@@ -10,7 +10,7 @@ body {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    font-size: 12px; /* Classic Mac OS had fairly standard font sizes */
+    font-size: 15px; /* Increased from 12px */
     -webkit-font-smoothing: antialiased; /* Crisper text rendering */
     -moz-osx-font-smoothing: grayscale;
 }
@@ -22,7 +22,7 @@ body {
 
 /* --- Configuration Panel (Classic Window Style) --- */
 .config-panel {
-    width: 240px;
+    width: 300px; /* Increased from 240px */
     background-color: #383838; /* Dark panel background */
     padding: 0;
     border-right: 1px solid #1A1A1A; /* Darker border */
@@ -35,18 +35,17 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 8px;
+    padding: 5px 10px; /* Increased from 4px 8px */
     background-color: #4A4A4A; /* Slightly lighter title bar */
-    /* background-image: repeating-linear-gradient(0deg, #4A4A4A, #4A4A4A 1px, #4F4F4F 1px, #4F4F4F 2px); /* Subtle lines */
     border-bottom: 1px solid #202020;
     width: 100%;
     box-sizing: border-box;
-    height: 28px; /* Classic title bar height */
+    height: 35px; /* Increased from 28px */
 }
 .config-panel h3 {
     margin: 0;
     color: #E0E0E0; /* Lighter title text */
-    font-size: 13px;
+    font-size: 16px; /* Increased from 13px */
     font-weight: bold;
     white-space: nowrap;
     overflow: hidden;
@@ -58,10 +57,10 @@ body {
     border-color: #777777 #404040 #404040 #777777; /* Bevel */
     color: #E0E0E0;
     border-radius: 3px;
-    padding: 2px 8px;
-    font-size: 12px;
+    padding: 3px 10px; /* Increased from 2px 8px */
+    font-size: 15px; /* Increased from 12px */
     cursor: pointer;
-    margin-left: 8px;
+    margin-left: 10px; /* Increased from 8px */
     box-shadow: 0 1px 0px rgba(255,255,255,0.1) inset; /* Subtle top highlight */
 }
 #toggleConfigButton:hover {
@@ -74,30 +73,30 @@ body {
 }
 
 #configPanelContent {
-    padding: 10px;
+    padding: 12px; /* Increased from 10px */
     overflow-y: auto;
     flex-grow: 1;
 }
 #configPanelContent div {
-    margin-bottom: 12px;
+    margin-bottom: 15px; /* Increased from 12px */
 }
 #configPanelContent label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 5px; /* Increased from 4px */
     font-weight: normal; /* Classic labels weren't always bold */
-    font-size: 11px;
+    font-size: 14px; /* Increased from 11px */
     color: #B0B0B0;
 }
 #configPanelContent input[type="number"],
 #configPanelContent input[type="text"],
 #configPanelContent select {
-    width: calc(100% - 10px);
-    padding: 4px 5px;
+    width: calc(100% - 12px); /* Increased from 10px */
+    padding: 5px 6px; /* Increased from 4px 5px */
     border: 1px solid;
     border-color: #202020 #606060 #606060 #202020; /* Inset border */
     border-radius: 3px;
     font-family: "Monaco", "Courier New", Courier, monospace;
-    font-size: 11px;
+    font-size: 14px; /* Increased from 11px */
     box-sizing: border-box;
     background-color: #282828; /* Dark input background */
     color: #E0E0E0; /* Light text in input */
@@ -115,25 +114,25 @@ body {
     font-weight: bold;
     color: #7FB0E8; /* Muted blue for data values */
     display: block;
-    margin-top: 4px;
-    padding: 5px 8px;
+    margin-top: 5px; /* Increased from 4px */
+    padding: 6px 10px; /* Increased from 5px 8px */
     background-color: #2A2A2A;
     border: 1px solid #1F1F1F;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: 14px; /* Increased from 11px */
 }
 .config-panel .error-message {
     color: #FF8080 !important; /* Light red for errors */
     font-weight: bold;
-    font-size: 11px;
+    font-size: 14px; /* Increased from 11px */
 }
 
 /* Collapsed State */
-.config-panel.collapsed { width: 45px; }
+.config-panel.collapsed { width: 56px; } /* Increased from 45px */
 .config-panel.collapsed .config-header-container { justify-content: center; }
 .config-panel.collapsed h3 { opacity: 0; max-width: 0; pointer-events: none;}
 .config-panel.collapsed #toggleConfigButton { margin-left: 0; }
-.config-panel.collapsed #configPanelContent { opacity: 0; max-height: 0; padding: 0 10px; pointer-events: none; visibility: hidden; }
+.config-panel.collapsed #configPanelContent { opacity: 0; max-height: 0; padding: 0 12px; pointer-events: none; visibility: hidden; } /* Padding increased */
 
 
 /* --- Main Content Area --- */
@@ -142,46 +141,45 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #2C2C2C;
-    padding: 10px;
+    padding: 12px; /* Increased from 10px */
 }
 
 .header { /* Main window title bar appearance */
     background-color: #404040; /* Dark title bar */
-    /* background-image: repeating-linear-gradient(0deg, #404040, #404040 1px, #454545 1px, #454545 2px); */
     color: #E0E0E0;
-    padding: 6px 10px;
+    padding: 8px 13px; /* Increased from 6px 10px */
     text-align: center;
-    font-size: 16px;
+    font-size: 20px; /* Increased from 16px */
     font-weight: bold;
     border-bottom: 1px solid #181818;
     text-shadow: 0 1px 1px rgba(0,0,0,0.5);
-    height: 30px;
+    height: 38px; /* Increased from 30px */
     box-sizing: border-box;
 }
 
 .status-bar {
     background-color: #353535;
     color: #C0C0C0;
-    padding: 5px 10px;
-    font-size: 11px;
+    padding: 6px 12px; /* Increased from 5px 10px */
+    font-size: 14px; /* Increased from 11px */
     border-top: 1px solid #4A4A4A;
     border-bottom: 1px solid #202020;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 12px; /* Increased from 10px */
+    margin-bottom: 12px; /* Increased from 10px */
 }
 .status-bar select {
     font-family: inherit;
-    font-size: 11px;
-    margin-left: 5px;
+    font-size: 14px; /* Increased from 11px */
+    margin-left: 6px; /* Increased from 5px */
     border: 1px solid;
     border-color: #202020 #585858 #585858 #202020; /* Inset */
     background-color: #282828;
     color: #D1D1D1;
     border-radius: 3px;
-    padding: 2px 3px;
+    padding: 3px 4px; /* Increased from 2px 3px */
 }
 .status-bar .data-value {
     font-weight: bold;
@@ -192,7 +190,7 @@ body {
 .esp32-connected { color: #77DD77; /* Light green */ }
 .esp32-disconnected { color: #FF8080; /* Light red */ }
 .esp32-unknown { color: #FFB347; /* Light orange */ }
-#systemStatus { margin-left: 15px; font-style: italic; color: #999; }
+#systemStatus { margin-left: 18px; font-style: italic; color: #999; } /* Increased from 15px */
 
 
 /* --- Tables --- */
@@ -202,15 +200,19 @@ table#shutterDataTable, table#resultsLogTable {
     border-collapse: separate;
     border-spacing: 0;
     background-color: #3A3A3A; /* Dark table background */
-    margin: 10px auto;
+    margin: 12px auto; /* Increased from 10px */
     width: 98%;
-    max-width: 900px;
+    max-width: 900px; /* Max width can remain, page will scale */
     border-radius: 4px; /* Classic Mac had slightly rounded table corners */
 }
+table#shutterDataTable {
+    table-layout: fixed; /* Added for column alignment */
+}
+
 table#shutterDataTable caption, table#resultsLogTable caption {
-    font-size: 14px;
+    font-size: 18px; /* Increased from 14px */
     font-weight: bold;
-    padding: 8px;
+    padding: 10px; /* Increased from 8px */
     color: #E0E0E0;
     text-align: left;
     text-shadow: 0 1px 1px rgba(0,0,0,0.4);
@@ -221,108 +223,145 @@ table#shutterDataTable caption, table#resultsLogTable caption {
 #resultsLogTable th, #resultsLogTable td {
     border: none;
     border-bottom: 1px solid #2F2F2F; /* Separator lines */
-    padding: 5px 8px;
-    font-size: 11px;
+    padding: 6px 10px; /* Increased from 5px 8px */
+    font-size: 14px; /* Increased from 11px */
     vertical-align: middle;
-    text-align: right;
     color: #D1D1D1;
 }
+
+/* Column width definitions for shutterDataTable */
+#shutterDataTable th:nth-child(1), /* First column (metric labels) */
+#shutterDataTable td:nth-child(1) {
+    width: 25%;
+}
+#shutterDataTable th:nth-child(n+2), /* Columns 2 through 7 */
+#shutterDataTable td:nth-child(n+2) {
+    width: 12.5%; /* 75% / 6 columns = 12.5% each */
+}
+
+/* Text alignment overrides and specific styles */
+#shutterDataTable th { /* All table headers in shutterDataTable */
+    background-color: #454545; /* Darker header */
+    color: #FFFFFF;
+    font-weight: bold;
+    text-align: center; /* Default for headers */
+    border-bottom: 1px solid #1A1A1A; /* Stronger separator */
+    border-top: 1px solid #5A5A5A; /* Top bevel for header */
+}
+
+#shutterDataTable th:first-child, /* Common styles for first-child headers and metric-label data cells */
+#shutterDataTable td.metric-label { /* Cells with metric-label class */
+    font-weight: bold;
+    /* text-align: left; <-- Removed to allow th:first-child to be centered */
+    background-color: #404040; /* Slightly different for label column */
+    border-right: 1px solid #2F2F2F;
+    color: #E8E8E8;
+}
+
+/* Ensure metric-label data cells (td) remain left-aligned */
+#shutterDataTable td.metric-label {
+    text-align: left;
+}
+
+#shutterDataTable td:not(.metric-label):not(.compare-value):not(.data-value) { /* Generic td cells default to right */
+    text-align: right;
+}
+
+
 #shutterDataTable tr:last-child td,
 #resultsLogTable tr:last-child td {
     border-bottom: none;
 }
-#shutterDataTable th, #resultsLogTable th {
-    background-color: #454545; /* Darker header */
+
+/* General header styling for resultsLogTable */
+#resultsLogTable th {
+    background-color: #454545;
     color: #FFFFFF;
     font-weight: bold;
     text-align: center;
-    border-bottom: 1px solid #1A1A1A; /* Stronger separator */
-    border-top: 1px solid #5A5A5A; /* Top bevel for header */
+    border-bottom: 1px solid #1A1A1A;
+    border-top: 1px solid #5A5A5A;
 }
+
 /* Classic Mac OS 9 style striped rows */
 #shutterDataTable tbody tr:nth-child(even) td,
 #resultsLogTable tbody tr:nth-child(even) td {
     background-color: #353535;
 }
-#shutterDataTable td.metric-label {
-    font-weight: bold;
-    text-align: left;
-    background-color: #404040; /* Slightly different for label column */
-    border-right: 1px solid #2F2F2F;
-    width: 25%;
-    color: #E8E8E8;
-}
 #shutterDataTable tbody tr:nth-child(even) td.metric-label {
     background-color: #3B3B3B;
 }
+
 
 #shutterDataTable .section-header {
     background-color: #2A2A2A; /* Very dark section header */
     color: #E0E0E0;
     font-weight: bold;
     text-align: center;
-    font-size: 12px;
+    font-size: 15px; /* Increased from 12px */
     border-top: 1px solid #404040;
     border-bottom: 1px solid #181818;
 }
 #shutterDataTable .section-header select {
     font-family: inherit;
-    font-size: 10px;
-    margin-left: 10px;
+    font-size: 13px; /* Increased from 10px */
+    margin-left: 12px; /* Increased from 10px */
     border: 1px solid #181818;
     background-color: #303030;
     color: #C0C0C0;
     border-radius: 3px;
 }
-#shutterDataTable .data-value {
+#shutterDataTable .data-value { /* For cells displaying primary calculated data */
     font-family: "Monaco", "Courier New", Courier, monospace;
     font-weight: bold;
     color: #7FB0E8; /* Muted blue */
+    text-align: right; /* Data values are right-aligned */
 }
-#shutterDataTable .compare-value {
+#shutterDataTable .compare-value, /* For cells showing comparison percentages/symbols */
+#shutterDataTable th.compare-header { /* For headers above comparison columns */
     font-family: "Monaco", "Courier New", Courier, monospace;
     text-align: center;
-    font-size: 10px;
+    font-size: 13px; /* Increased from 10px */
     color: #A0A0A0;
 }
 .compare-value-high-variance { color: #FF8080 !important; font-weight: bold; }
 .compare-value-low-variance { color: #77DD77 !important; }
 
 
-.error-message { color: #FF8080; font-weight: bold; margin-top: 10px; font-size: 11px;}
-#error-display { text-align:center; margin-top:15px; padding: 5px; color: #FF8080;}
+.error-message { color: #FF8080; font-weight: bold; margin-top: 12px; font-size: 14px;} /* Increased from 10px, 11px */
+#error-display { text-align:center; margin-top:18px; padding: 6px; color: #FF8080;} /* Increased from 15px, 5px */
 
 
 .footer {
     text-align: center;
-    font-size: 10px;
+    font-size: 13px; /* Increased from 10px */
     margin-top: auto;
     color: #909090;
-    padding: 10px;
+    padding: 13px; /* Increased from 10px */
     background-color: #252525; /* Dark footer */
     border-top: 1px solid #3A3A3A;
 }
 
 /* --- Tab Navigation (Classic Mac OS 9 style) --- */
 .tab-navigation {
-    margin: 10px auto 0;
+    margin: 12px auto 0; /* Increased from 10px */
     width: 98%;
-    max-width: 900px;
+    max-width: 900px; /* Max width can remain */
     padding-bottom: 0;
     border-bottom: 1px solid #1A1A1A; /* Dark underline for tabs */
     display: flex;
-    height: 26px; /* Control tab height */
+    height: 33px; /* Increased from 26px */
 }
 .tab-button {
-    padding: 4px 12px 5px 12px; /* Top padding less, bottom more for bevel */
+    padding: 5px 15px 6px 15px; /* Increased from 4px 12px 5px 12px */
     cursor: pointer;
     border: 1px solid;
     border-color: #5A5A5A #2A2A2A #2A2A2A #5A5A5A; /* Outset bevel */
     border-bottom: none;
     background-color: #404040; /* Default tab color */
     font-family: inherit;
-    font-size: 12px;
-    margin-right: 2px;
+    font-size: 15px; /* Increased from 12px */
+    margin-right: 3px; /* Increased from 2px */
     border-radius: 4px 4px 0 0; /* Rounded top */
     color: #C0C0C0;
     position: relative;
@@ -338,47 +377,51 @@ table#shutterDataTable caption, table#resultsLogTable caption {
     color: #FFFFFF;
     font-weight: bold;
     z-index: 1;
-    padding-bottom: 6px; /* Slightly more to cover bottom border */
+    padding-bottom: 8px; /* Increased from 6px */
     margin-bottom: -1px; /* Pull up to cover main border */
 }
 .tab-content {
     display: none;
-    padding: 10px; /* Content padding */
+    padding: 13px; /* Increased from 10px */
     background: #3A3A3A; /* Match active tab */
     border: 1px solid;
     border-color: #5A5A5A #202020 #202020 #5A5A5A; /* Outset border for content */
     border-top: none; /* Top covered by tab nav */
     border-radius: 0 0 4px 4px; /* Rounded bottom */
-    margin-bottom: 10px;
+    margin-bottom: 12px; /* Increased from 10px */
 }
 .tab-content.active { display: block; }
 
 /* Results Log Table Specifics */
-#resultsLogTable th, #resultsLogTable td { padding: 4px 6px; font-size: 10px; }
-#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%;}
-#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; }
+#resultsLogTable th, #resultsLogTable td { padding: 5px 8px; font-size: 13px; } /* Increased from 4px 6px, 10px */
+#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%;} /* ID column */
+#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; } /* Numerical data right aligned */
 #resultsLogTable td:nth-child(n+4) { font-family: "Monaco", "Courier New", Courier, monospace; }
 
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    body { font-size: 11px; }
+    body { font-size: 14px; } /* Increased from 11px, effectively making mobile slightly larger too */
     .page-container { flex-direction: column; }
     .config-panel { width: 100%; border-right: none; border-bottom: 1px solid #1A1A1A; }
     .config-panel.collapsed h3 { opacity: 1; max-width: 100%; pointer-events: auto; }
-    .header { font-size: 14px; border-radius: 0;}
-    .status-bar { flex-direction: column; align-items: flex-start; font-size: 10px; }
-    table#shutterDataTable, table#resultsLogTable { width: 100%; max-width: 100%; border-radius: 0; }
+    .header { font-size: 18px; border-radius: 0;} /* Increased from 14px */
+    .status-bar { flex-direction: column; align-items: flex-start; font-size: 13px; } /* Increased from 10px */
+    table#shutterDataTable, table#resultsLogTable { width: 100%; max-width: 100%; border-radius: 0; table-layout: auto; }
+    #shutterDataTable th:nth-child(1), #shutterDataTable td:nth-child(1),
+    #shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2) {
+        width: auto; /* Reset fixed widths for responsive */
+    }
     #shutterDataTable th, #shutterDataTable td,
-    #resultsLogTable th, #resultsLogTable td { padding: 3px; font-size: 0.9em; white-space: normal; }
+    #resultsLogTable th, #resultsLogTable td { padding: 4px; font-size: 0.9em; white-space: normal; } /* Padding slightly increased */
     .tab-navigation { width: 100%; height: auto; }
-    .tab-button { padding: 5px 8px; font-size: 11px; }
+    .tab-button { padding: 6px 10px; font-size: 14px; } /* Increased from 5px 8px, 11px */
 }
 
 /* Classic Mac OS 9 Scrollbars (WebKit only, very hard to replicate perfectly) */
 ::-webkit-scrollbar {
-    width: 16px; /* Chunky */
-    height: 16px;
+    width: 20px; /* Increased from 16px */
+    height: 20px; /* Increased from 16px */
 }
 ::-webkit-scrollbar-track {
     background: #282828; /* Dark track */
@@ -399,10 +442,10 @@ table#shutterDataTable caption, table#resultsLogTable caption {
     border-color: #606060 #303030 #303030 #606060;
     border-radius: 2px;
     display: block; /* Make them visible */
-    height: 16px;
-    width: 16px;
+    height: 20px; /* Increased from 16px */
+    width: 20px; /* Increased from 16px */
 }
 /* Arrows (using pseudo-elements, very basic) */
-::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23A0A0A0'><polygon points='5,2 2,8 8,8'/></svg>"); background-repeat: no-repeat; background-position: center center; }
-::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23A0A0A0'><polygon points='5,8 2,2 8,2'/></svg>"); background-repeat: no-repeat; background-position: center center; }
+::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A0A0A0'><polygon points='6,3 3,9 9,9'/></svg>"); background-repeat: no-repeat; background-position: center center; } /* Arrow size slightly increased */
+::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A0A0A0'><polygon points='6,9 3,3 9,3'/></svg>"); background-repeat: no-repeat; background-position: center center; } /* Arrow size slightly increased */
 /* Horizontal scrollbar buttons would need different arrows */
