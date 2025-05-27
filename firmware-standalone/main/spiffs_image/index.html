@@ -2,9 +2,9 @@
 <html>
 <head>
     <title>Precision Shutter Diagnostics Interface</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta charset="UTF-8"> <!-- Changed to UTF-8 -->
     <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
@@ -33,21 +33,22 @@
 
     <div class="main-content">
         <div class="header">
-            Precision Shutter Diagnostics Interface v1.1
+            Precision Shutter Diagnostics Interface v1.2
         </div>
 
         <div class="status-bar">
             <div class="status-left-group">
                 <span>ESP32: <span id="esp32-connection-status" class="data-value esp32-unknown">Awaiting...</span></span>
-                <span style="margin-left: 20px;">Mode: 
+                <span style="margin-left: 20px;">Mode:
                     <select id="sensorModeSelector">
                         <option value="0">All Sensors</option>
                         <option value="1">Outer Sensors</option>
                         <option value="2">Inner Sensor</option>
                     </select>
                 </span>
+                <span id="systemStatus">Initializing...</span>
             </div>
-            <span>Last ESP32 Comms: <span id="last-update" class="data-value">N/A</span></span>
+            <span>Last Comms: <span id="last-update" class="data-value">N/A</span></span>
         </div>
 
         <div class="tab-navigation">
@@ -58,17 +59,16 @@
         <div id="mainTableTabContent" class="tab-content active">
             <table id="shutterDataTable">
                 <caption>Shutter Performance Analysis</caption>
-                <!-- ... table structure ... -->
                 <tbody>
-                    <tr><td colspan="7" class="section-header" style="border-top: 2px solid #707070;">Exposure & Shutter Speed</td></tr>
+                    <tr><td colspan="7" class="section-header">Exposure & Shutter Speed</td></tr>
                     <tr>
-                        <th class="metric-label" style="background-color: #D3D3D3; color: #000000;">Metric</th>
-                        <th style="text-align: center; background-color: #D3D3D3; color: #000000;">Sensor 1 (S1)</th>
-                        <th class="compare-header" style="text-align: center; background-color: #D3D3D3; color: #000000;">S1 vs S2</th>
-                        <th style="text-align: center; background-color: #D3D3D3; color: #000000;">Sensor 2 (S2)</th>
-                        <th class="compare-header" style="text-align: center; background-color: #D3D3D3; color: #000000;">S2 vs S3</th>
-                        <th class="sensor3-col" style="text-align: center; background-color: #D3D3D3; color: #000000;">Sensor 3 (S3)</th>
-                        <th style="text-align: center; background-color: #D3D3D3; color: #000000;">Average</th>
+                        <th class="metric-label">Metric</th>
+                        <th>Sensor 1 (S1)</th>
+                        <th class="compare-header">S1 vs S2</th>
+                        <th>Sensor 2 (S2)</th>
+                        <th class="compare-header">S2 vs S3</th>
+                        <th>Sensor 3 (S3)</th>
+                        <th>Average</th>
                     </tr>
                     <tr>
                         <td class="metric-label">Exposure Time (ms)</td>
@@ -76,52 +76,52 @@
                         <td id="exp_compare_s1s2" class="compare-value">---</td>
                         <td id="exp_ms_s2" class="data-value">---</td>
                         <td id="exp_compare_s2s3" class="compare-value">---</td>
-                        <td id="exp_ms_s3" class="data-value sensor3-col">---</td>
-                        <td id="exp_ms_avg" class="data-value">--- (Avg)</td>
+                        <td id="exp_ms_s3" class="data-value">---</td>
+                        <td id="exp_ms_avg" class="data-value">---</td>
                     </tr>
                     <tr>
-                        <td class="metric-label">Shutter Speed</td>
+                        <td class="metric-label">Shutter Speed (Hz)</td>
                         <td id="hz_s1" class="data-value">---</td>
-                        <td></td> 
+                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
                         <td id="hz_s2" class="data-value">---</td>
-                        <td></td> 
-                        <td id="hz_s3" class="data-value sensor3-col">---</td>
-                        <td id="hz_avg" class="data-value">--- (Avg)</td>
+                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
+                        <td id="hz_s3" class="data-value">---</td>
+                        <td id="hz_avg" class="data-value">---</td>
                     </tr>
-                    
-                    <tr><td colspan="7" class="section-header">Curtain Travel Times & Comparison (ms)</td></tr>
+
+                    <tr><td colspan="7" class="section-header">Curtain Travel Times & Comparison (ms, scaled)</td></tr>
                     <tr>
-                        <th class="metric-label" style="text-align: left; background-color: #D3D3D3; color: #000000;">Metric</th>
-                        <th colspan="2" style="text-align: center; background-color: #D3D3D3; color: #000000;">Left to Center</th>
-                        <th style="text-align: center; background-color: #D3D3D3; color: #000000;">%</th>
-                        <th colspan="2" style="text-align: center; background-color: #D3D3D3; color: #000000;" class="sensor3-col">Center to Right</th>
-                        <th style="text-align: center; background-color: #D3D3D3; color: #000000;">Total</th>
+                        <th class="metric-label">Metric</th>
+                        <th colspan="2">S1 to S2</th>
+                        <th class="compare-header">% Var</th>
+                        <th colspan="2">S2 to S3</th>
+                        <th>Total (S1-S3)</th>
                     </tr>
                     <tr>
-                        <td class="metric-label">Curtain 1</td>
+                        <td class="metric-label">Curtain 1 Travel</td>
                         <td colspan="2" id="ct_c1_s1s2_time" class="data-value">---</td>
                         <td id="ct_c1_intra_pct_var" class="compare-value">---</td>
-                        <td colspan="2" id="ct_c1_s2s3_time" class="data-value sensor3-col">---</td>
+                        <td colspan="2" id="ct_c1_s2s3_time" class="data-value">---</td>
                         <td id="ct_c1_total_time" class="data-value">---</td>
                     </tr>
                     <tr>
-                        <td class="metric-label" style="font-size:8pt;">Curtain Diff. %</td>
+                        <td class="metric-label" style="font-size:8pt;">C1 vs C2 Diff %</td>
                         <td colspan="2" id="ct_c1c2_s1s2_compare_pct" class="compare-value">---</td>
-                        <td class="compare-value"></td> 
-                        <td colspan="2" id="ct_c1c2_s2s3_compare_pct" class="compare-value sensor3-col">---</td>
+                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
+                        <td colspan="2" id="ct_c1c2_s2s3_compare_pct" class="compare-value">---</td>
                         <td id="ct_c1c2_total_compare_pct" class="compare-value">---</td>
                     </tr>
                     <tr>
-                        <td class="metric-label">Curtain 2</td>
+                        <td class="metric-label">Curtain 2 Travel</td>
                         <td colspan="2" id="ct_c2_s1s2_time" class="data-value">---</td>
                         <td id="ct_c2_intra_pct_var" class="compare-value">---</td>
-                        <td colspan="2" id="ct_c2_s2s3_time" class="data-value sensor3-col">---</td>
+                        <td colspan="2" id="ct_c2_s2s3_time" class="data-value">---</td>
                         <td id="ct_c2_total_time" class="data-value">---</td>
                     </tr>
-                    
+
                     <tr><td colspan="7" class="section-header">Analysis & Durations</td></tr>
                     <tr>
-                        <td class="metric-label">Shutter Fully Open Duration (ms)</td>
+                        <td class="metric-label">Avg. Effective Exposure (ms)</td>
                         <td id="open_time_duration_ms" class="data-value" colspan="6">---</td>
                     </tr>
                     <tr>
@@ -129,7 +129,7 @@
                         <td id="slit_width_mm" class="data-value" colspan="6">---</td>
                     </tr>
                     <tr>
-                        <td class="metric-label">Exposure Variation (% from avg)</td>
+                        <td class="metric-label">Exposure Variation (%)</td>
                         <td id="exp_var_pct" class="data-value" colspan="6">---</td>
                     </tr>
 
@@ -157,7 +157,7 @@
                     </tr>
                 </tbody>
             </table>
-            <div id="error-display" style="text-align:center; margin-top:15px;"></div>
+            <div id="error-display"></div>
         </div>
 
         <div id="resultsLogTabContent" class="tab-content">
@@ -182,16 +182,18 @@
                     <!-- Log rows will be inserted here by JavaScript -->
                 </tbody>
             </table>
+             <div style="text-align: center; margin-top: 10px;">
+                <button onclick="if(window.clearResultsLog) window.clearResultsLog();" title="Clear all entries from the log table">Clear Log</button>
+            </div>
         </div>
-
         <div class="footer">
             (c) 1999-2025 Tom Grimwood. - For Professional Use Only.
         </div>
     </div> <!-- END main-content -->
 </div> <!-- END page-container -->
 
-<script type="text/javascript" src="/static/js/t.js"></script>
-<script type="text/javascript" src="/static/js/sc.js"></script>
+<script type="text/javascript" src="/static/js/ui-helpers.js"></script>
+<script type="text/javascript" src="/static/js/shutter-calcs.js"></script>
 <script type="text/javascript" src="/static/js/config-panel.js"></script>
 <script type="text/javascript" src="/static/js/results-log.js"></script>
 <script type="text/javascript" src="/static/js/data-updater.js"></script>

@@ -1,28 +1,23 @@
-// results-log.js
+// results-log.js - Refined
 
-const MAX_LOG_ENTRIES = 100; // Maximum number of entries to keep in the log
-window.resultsLog = []; // Store log data in memory
+const MAX_LOG_ENTRIES = 100;
+window.resultsLog = []; // Store log data in memory (as in original)
+let resultsLogIdCounter = 1; // Added from reference for unique ID
 
 function addResultToLog() {
     if (!window.AppState || !window.AppState.lastReceivedData) {
-        // console.log("No data available to log.");
         return;
     }
-    // Ensure that AppState.lastReceivedData contains the raw data from ESP32, not the processed metrics
-    const rawData = window.AppState.lastReceivedData; 
 
-    // Extract values for the log - these should be calculated values based on rawData
-    // The data-updater.js script will have populated the display fields. We read from there.
-    // Or, better, re-calculate key metrics here for consistency if data-updater's display values are formatted.
-    // For simplicity, let's assume data-updater has done its job and we can grab display text,
-    // but it's more robust to recalculate or grab from a consistent data structure.
-    // For this example, we'll grab key values from the display elements.
-    // This is NOT ideal as it couples logic tightly to display formatting.
-    // A better way would be for updateShutterDisplay to store calculated metrics in AppState.
-    
-    const logEntry = {
-        timestamp: new Date().toLocaleTimeString(),
-        mode: document.getElementById('sensorModeSelector').selectedOptions[0].text.substring(0,10), // Abbreviate
+    let currentModeText = '---';
+    if (DOM.sensorModeSelector && DOM.sensorModeSelector.options && DOM.sensorModeSelector.selectedIndex !== -1) {
+        currentModeText = DOM.sensorModeSelector.options[DOM.sensorModeSelector.selectedIndex].text.substring(0,10); // Abbreviate
+    }
+
+    const newLogEntry = {
+        // id will be assigned later if entry is added
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+        mode: currentModeText,
         exp_s1_ms: getText('exp_ms_s1', '---'),
         exp_s2_ms: getText('exp_ms_s2', '---'),
         exp_s3_ms: getText('exp_ms_s3', '---'),
@@ -30,14 +25,36 @@ function addResultToLog() {
         c1_total_ms: getText('ct_c1_total_time', '---'),
         c2_total_ms: getText('ct_c2_total_time', '---'),
         slit_mm: getText('slit_width_mm', '---'),
-        exp_var_pct: getText('exp_var_pct', '---')
+        exp_var_pct: getText('exp_var_pct', '---') // getText will trim and handle "---"
     };
 
-    window.resultsLog.unshift(logEntry); // Add to the beginning of the array
+    // Check if the new data is identical to the last logged entry's data fields
+    if (window.resultsLog.length > 0) {
+        const lastLoggedEntry = window.resultsLog[0];
+        // Compare all relevant data fields. 'id' and 'timestamp' are expected to differ.
+        if (newLogEntry.mode === lastLoggedEntry.mode &&
+            newLogEntry.exp_s1_ms === lastLoggedEntry.exp_s1_ms &&
+            newLogEntry.exp_s2_ms === lastLoggedEntry.exp_s2_ms &&
+            newLogEntry.exp_s3_ms === lastLoggedEntry.exp_s3_ms &&
+            newLogEntry.avg_hz === lastLoggedEntry.avg_hz &&
+            newLogEntry.c1_total_ms === lastLoggedEntry.c1_total_ms &&
+            newLogEntry.c2_total_ms === lastLoggedEntry.c2_total_ms &&
+            newLogEntry.slit_mm === lastLoggedEntry.slit_mm &&
+            newLogEntry.exp_var_pct === lastLoggedEntry.exp_var_pct)
+        {
+            // console.log("New data identical to last log entry. Skipping log addition.");
+            return; // Do not add the duplicate entry
+        }
+    }
+    
+    // If we reach here, the entry is new or different, so add it.
+    // Assign a unique ID to the new entry before adding it.
+    newLogEntry.id = resultsLogIdCounter++;
 
-    // Keep the log size manageable
+    window.resultsLog.unshift(newLogEntry);
+
     if (window.resultsLog.length > MAX_LOG_ENTRIES) {
-        window.resultsLog.pop(); // Remove the oldest entry
+        window.resultsLog.pop();
     }
 
     renderResultsLogTable();
@@ -52,9 +69,9 @@ function renderResultsLogTable() {
 
     tableBody.innerHTML = ''; // Clear existing rows
 
-    window.resultsLog.forEach((entry, index) => {
+    window.resultsLog.forEach(entry => { // No index needed if using entry.id
         const row = tableBody.insertRow();
-        row.insertCell().textContent = window.resultsLog.length - index; // Entry number (desc)
+        row.insertCell().textContent = entry.id; // Display unique ID
         row.insertCell().textContent = entry.timestamp;
         row.insertCell().textContent = entry.mode;
         row.insertCell().textContent = entry.exp_s1_ms;
@@ -70,16 +87,8 @@ function renderResultsLogTable() {
 
 function clearResultsLog() {
     window.resultsLog = [];
+    resultsLogIdCounter = 1; // Reset counter
     renderResultsLogTable();
     console.log("Results log cleared.");
 }
-
-// Helper to get text from an element, used by addResultToLog
-// This is defined in ui-helpers.js, ensure it's loaded first or redefine here.
-// For robustness, ensure it's available:
-if (typeof getText === 'undefined') {
-    window.getText = function(elementId, defaultValue = '---') {
-        const element = document.getElementById(elementId);
-        return element ? element.textContent : defaultValue;
-    };
-}
+window.clearResultsLog = clearResultsLog; // Expose to global for button onclick

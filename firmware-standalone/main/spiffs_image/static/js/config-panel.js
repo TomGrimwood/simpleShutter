@@ -1,23 +1,25 @@
-// config-panel.js
+// config-panel.js - Refined
+
+let internalTimeScalingFactor = 1.0; // Keep factor internal to this module
 
 function _calculateAndSetScalingFactor() {
-    const actualDist = parseFloat(document.getElementById('totalSensorDistanceConfig').value);
-    const calibDist = parseFloat(document.getElementById('calibrationTargetDistanceConfig').value);
+    const actualDist = parseFloat(DOM.totalSensorDistanceConfigInput.value);
+    const calibDist = parseFloat(DOM.calibrationTargetDistanceConfigInput.value);
 
-    if (!isNaN(actualDist) && !isNaN(calibDist) && calibDist > 0) {
-        const factor = calibDist / actualDist;
-        document.getElementById('timeScalingFactorDisplay').textContent = factor.toFixed(4);
-        return factor;
+    if (!isNaN(actualDist) && actualDist > 0 && !isNaN(calibDist) && calibDist >= 0) {
+        internalTimeScalingFactor = calibDist / actualDist;
+        DOM.timeScalingFactorDisplay.textContent = internalTimeScalingFactor.toFixed(4);
+        DOM.timeScalingFactorDisplay.classList.remove("error-message"); // From reference style
+    } else {
+        internalTimeScalingFactor = 1.0; // Default to 1.0 if inputs are invalid
+        DOM.timeScalingFactorDisplay.textContent = "Error (invalid input)";
+        DOM.timeScalingFactorDisplay.classList.add("error-message"); // From reference style
     }
-    document.getElementById('timeScalingFactorDisplay').textContent = "Error";
-    return 1.0; // Default to 1.0 if inputs are invalid
+    return internalTimeScalingFactor;
 }
 
 function updateScalingFactorAndRedisplay() {
     _calculateAndSetScalingFactor();
-    // If data exists, re-trigger display with new scaling factor
-    // This assumes that updateShutterDisplay (or a similar function)
-    // will re-read the scaling factor when it processes data.
     // Call the global triggerDisplayUpdate from main.js
     if (typeof triggerDisplayUpdate === 'function') {
         triggerDisplayUpdate();
@@ -27,40 +29,40 @@ function updateScalingFactorAndRedisplay() {
 }
 
 function getCurrentTimeScalingFactor() {
-    const factorText = document.getElementById('timeScalingFactorDisplay').textContent;
-    const factor = parseFloat(factorText);
-    if (!isNaN(factor) && factorText !== "Error") {
-        return factor;
-    }
-    return 1.0; // Default or if error
+    // Ensure the factor is up-to-date if called externally, though typically it's driven by input events.
+    // _calculateAndSetScalingFactor(); // This might be redundant if inputs always trigger update.
+    // For safety, let's rely on the internal variable being up-to-date via event listeners.
+    return internalTimeScalingFactor;
 }
 
 function initializeConfigPanelInteraction() {
-    // Initial calculation
-    _calculateAndSetScalingFactor();
+    _calculateAndSetScalingFactor(); // Initial calculation
 
-    // Listeners for config inputs
-    document.getElementById('totalSensorDistanceConfig').addEventListener('input', updateScalingFactorAndRedisplay);
-    document.getElementById('calibrationTargetDistanceConfig').addEventListener('input', updateScalingFactorAndRedisplay);
+    DOM.totalSensorDistanceConfigInput.addEventListener('input', updateScalingFactorAndRedisplay);
+    DOM.calibrationTargetDistanceConfigInput.addEventListener('input', updateScalingFactorAndRedisplay);
 
-    // Toggle functionality
-    const toggleButton = document.getElementById('toggleConfigButton');
-    const configPanelContent = document.getElementById('configPanelContent');
-    const configPanel = document.getElementById('configPanel');
+    DOM.toggleConfigButton.addEventListener('click', () => {
+        const isCurrentlyCollapsed = DOM.configPanel.classList.contains('collapsed');
+        DOM.configPanel.classList.toggle('collapsed', !isCurrentlyCollapsed);
 
-    toggleButton.addEventListener('click', () => {
-        const isCollapsed = configPanelContent.style.display === 'none';
-        configPanelContent.style.display = isCollapsed ? '' : 'none';
-        toggleButton.textContent = isCollapsed ? '«' : '»';
-        configPanel.classList.toggle('collapsed', !isCollapsed);
-        // Store state in localStorage
-        localStorage.setItem('configPanelCollapsed', !isCollapsed);
+        if (!isCurrentlyCollapsed) { // Is going to be collapsed
+            DOM.toggleConfigButton.innerHTML = '»'; // Reference style
+            DOM.toggleConfigButton.title = "Expand Configuration Panel";
+        } else { // Is going to be expanded
+            DOM.toggleConfigButton.innerHTML = '«'; // Reference style
+            DOM.toggleConfigButton.title = "Collapse Configuration Panel";
+        }
+        localStorage.setItem('configPanelCollapsed', String(!isCurrentlyCollapsed));
     });
 
     // Restore state from localStorage
     if (localStorage.getItem('configPanelCollapsed') === 'true') {
-        configPanelContent.style.display = 'none';
-        toggleButton.textContent = '»';
-        configPanel.classList.add('collapsed');
+        DOM.configPanel.classList.add('collapsed');
+        DOM.toggleConfigButton.innerHTML = '»';
+        DOM.toggleConfigButton.title = "Expand Configuration Panel";
+    } else {
+        DOM.configPanel.classList.remove('collapsed');
+        DOM.toggleConfigButton.innerHTML = '«';
+        DOM.toggleConfigButton.title = "Collapse Configuration Panel";
     }
 }

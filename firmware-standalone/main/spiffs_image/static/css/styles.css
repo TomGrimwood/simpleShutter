@@ -1,272 +1,419 @@
-/* styles.css */
+/* styles.css - Refined version */
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Times New Roman", Times, serif;
+    background-color: #C0C0C0; /* Light gray background */
+    color: #000000; /* Black text */
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
-    display: flex;
-    min-height: 100vh; /* Ensures footer is at bottom if content is short */
-    flex-direction: column; /* Allows footer to push to bottom */
+    display: flex; /* Added from original for footer push */
+    min-height: 100vh;
+    flex-direction: column; /* Added from original for footer push */
 }
 
 .page-container {
     display: flex;
-    flex-grow: 1; /* Allows main content to take up available space */
+    flex-grow: 1; /* Added from original */
 }
 
 .config-panel {
-    background-color: #e9e9e9;
+    width: 220px; /* Adjusted from reference's 200px */
+    background-color: #E0E0E0; /* Lighter gray for panel */
     padding: 15px;
-    width: 280px; /* Fixed width */
-    border-right: 1px solid #ccc;
-    transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
-    overflow: hidden; /* Hide content when collapsed */
+    border-right: 2px solid #808080; /* Dark gray border */
+    font-size: 10pt;
+    box-sizing: border-box;
+    transition: width 0.3s ease, padding-left 0.3s ease, padding-right 0.3s ease;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
-
-.config-panel.collapsed {
-    width: 40px; /* Width when collapsed */
-    padding: 15px 0;
-}
-
 .config-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px; /* Add some space below the header */
+    margin-bottom: 15px;
+    width: 100%;
+    transition: margin-bottom 0.3s ease;
 }
-
-.config-panel.collapsed .config-header-container h3 {
-    display: none; /* Hide "Configuration" text when collapsed */
+.config-panel h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    color: #000080; /* Dark blue */
+    border-bottom: 1px solid #A0A0A0; /* Medium gray border */
+    padding-bottom: 8px;
+    font-size: 12pt;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-width 0.3s ease, padding-bottom 0.3s ease, border-bottom-width 0.3s ease, margin 0.3s ease, flex-grow 0.3s ease;
+}
+#toggleConfigButton {
+    background: #A0A0A0; /* Medium gray */
+    color: white;
+    border: 1px outset #808080; /* 3D border */
+    padding: 2px 6px;
+    font-size: 12pt;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+#toggleConfigButton:hover {
+    background: #808080; /* Darker gray on hover */
 }
 
 #configPanelContent {
-    /* Content will be shown/hidden by JS */
+    transition: opacity 0.2s ease 0.1s, max-height 0.3s ease;
+    opacity: 1;
+    overflow: hidden;
+    max-height: 500px; /* Approximate max height for content */
 }
-
-.config-panel.collapsed #configPanelContent {
-    display: none;
+#configPanelContent div {
+    margin-bottom: 12px;
 }
-
-
-.config-panel label {
+#configPanelContent label {
     display: block;
-    margin-top: 10px;
+    margin-bottom: 4px;
     font-weight: bold;
-    font-size: 0.9em;
+    color: #333333; /* Darker text for labels */
 }
-
-.config-panel input[type="text"],
-.config-panel input[type="number"],
-.config-panel select {
-    width: calc(100% - 20px); /* Full width minus padding */
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+#configPanelContent input[type="number"],
+#configPanelContent input[type="text"], /* Added from original */
+#configPanelContent select {
+    width: calc(100% - 12px);
+    padding: 5px;
+    border: 1px inset #808080; /* 3D border */
+    font-family: "Courier New", Courier, monospace;
+    font-size: 10pt;
     box-sizing: border-box;
+    background-color: #F0F0F0; /* Very light gray input background */
 }
-.config-panel .data-value { /* For timeScalingFactorDisplay */
-    display: block;
+.config-panel .data-value {
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+    color: #0000FF; /* Blue for data values */
+    display: block; /* Make span take block for consistent layout */
     margin-top: 5px;
     padding: 8px;
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
+}
+.config-panel .error-message {
+    color: #FF0000 !important; /* Red for errors */
+    font-weight: bold;
+}
+
+/* Collapsed State from Reference */
+.config-panel.collapsed {
+    width: 45px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.config-panel.collapsed .config-header-container {
+    margin-bottom: 0;
+    justify-content: center;
+}
+.config-panel.collapsed h3 {
+    opacity: 0;
+    max-width: 0;
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    margin: 0 !important;
+    flex-grow: 0;
+    pointer-events: none;
+}
+.config-panel.collapsed #toggleConfigButton {
+    margin-left: 0;
+}
+.config-panel.collapsed #configPanelContent {
+    opacity: 0;
+    max-height: 0;
+    pointer-events: none;
+    visibility: hidden;
 }
 
 
 .main-content {
-    flex-grow: 1; /* Takes remaining width */
-    padding: 20px;
-    background-color: #fff;
-    /* overflow-y: auto; /* If content might exceed viewport height */
+    flex-grow: 1;
+    display: flex; /* For footer */
+    flex-direction: column; /* For footer */
+    background-color: #C0C0C0; /* Match body or use #FFFFFF for content area if preferred */
+    padding: 10px; /* Add some padding around main content area */
 }
 
-
 .header {
-    background-color: #004080; /* Dark blue */
-    color: white;
-    padding: 15px;
+    background-color: #000080; /* Dark blue */
+    color: #FFFF00; /* Yellow text */
+    padding: 10px;
     text-align: center;
-    font-size: 1.5em;
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    font-size: 18pt;
+    font-weight: bold;
+    border-bottom: 3px double #000000; /* Black double border */
 }
 
 .status-bar {
-    background-color: #e7e7e7;
-    padding: 10px;
-    margin-top: 0; /* No margin from header */
-    margin-bottom: 20px;
-    border-radius: 0 0 5px 5px; /* Rounded bottom corners */
-    font-size: 0.9em;
+    background-color: #A0A0A0; /* Medium gray */
+    color: #000000; /* Black text */
+    padding: 5px 10px; /* Reduced padding slightly */
+    font-size: 10pt;
+    border-top: 1px solid #FFFFFF; /* White top border */
+    border-bottom: 1px solid #000000; /* Black bottom border */
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 10px; /* Space from header */
+    margin-bottom: 10px; /* Space to tabs/table */
 }
-
+.status-bar select {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 9pt;
+    margin-left: 5px;
+    border: 1px inset #808080;
+    background-color: #F0F0F0;
+    padding: 1px 3px;
+    vertical-align: middle;
+}
 .status-left-group {
     display: flex;
     align-items: center;
 }
-
-.status-bar .data-value {
+.status-bar .data-value { /* For specific data values in status bar */
     font-weight: bold;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: "Courier New", Courier, monospace;
 }
-.esp32-connected { color: #28a745; /* Green */ }
-.esp32-disconnected { color: #dc3545; /* Red */ }
-.esp32-unknown { color: #fd7e14; /* Orange */ }
+#esp32-connection-status { font-weight: bold; }
+.esp32-connected { color: #008000; /* Green */ }
+.esp32-disconnected { color: #FF0000; /* Red */ }
+.esp32-unknown { color: #FFA500; /* Orange */ }
+#systemStatus { margin-left: 15px; font-style: italic; }
 
 
-table {
-    width: 100%;
+table#shutterDataTable, table#resultsLogTable {
+    border: 2px outset #808080; /* 3D outset border */
     border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 0.9em;
+    background-color: #F0F0F0; /* Very light gray table background */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    width: 98%; /* Adjusted from 95% */
+    max-width: 900px; /* Adjusted max-width */
+    table-layout: fixed; /* Helps with consistent column widths */
+}
+table#shutterDataTable caption, table#resultsLogTable caption {
+    font-size: 14pt;
+    font-weight: bold;
+    padding: 8px;
+    color: #000080; /* Dark blue caption text */
 }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
+/* Default for main table cells */
+#shutterDataTable th, #shutterDataTable td {
+    border: 1px inset #A0A0A0; /* 3D inset border for cells */
+    padding: 5px;
+    font-size: 10pt; /* Slightly smaller than reference's 11pt for more data */
+    vertical-align: middle;
+    overflow: hidden;
     text-align: right; /* Default to right for numbers */
 }
-
-th {
-    background-color: #f2f2f2;
-    text-align: center; /* Center align headers */
-}
-td.metric-label {
-    font-weight: bold;
-    text-align: left; /* Left align metric labels */
-    background-color: #f8f8f8;
-    width: 25%; /* Give metric labels a bit more space */
-}
-.section-header {
-    background-color: #e0e0e0;
+#shutterDataTable th {
+    background-color: #A0A0A0; /* Medium gray header background */
+    color: #FFFFFF; /* White header text */
     font-weight: bold;
     text-align: center;
-    font-size: 1.1em;
+}
+#shutterDataTable td.metric-label {
+    font-weight: bold;
+    text-align: left; /* Left align metric labels */
+    background-color: #DCDCDC; /* Slightly different background for metric labels */
+    width: 25%;
+}
+#shutterDataTable .section-header {
+    background-color: #B0B0B0; /* Slightly darker gray for section headers */
+    color: #000000;
+    font-weight: bold;
+    text-align: center;
+    font-size: 11pt;
     border-top: 2px solid #707070;
     border-bottom: 2px solid #707070;
 }
-
-.data-value {
-    font-family: 'Courier New', Courier, monospace;
+#shutterDataTable .section-header select {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 9pt;
+    margin-left: 10px;
+    border: 1px inset #808080;
+    background-color: #F0F0F0;
+    padding: 1px;
+}
+#shutterDataTable .data-value { /* For data cells in the main table */
+    font-family: "Courier New", Courier, monospace;
     font-weight: bold;
+    color: #0000FF; /* Blue for data values */
 }
-
-.compare-value {
-    font-family: 'Courier New', Courier, monospace;
-    font-style: italic;
-    color: #555;
+#shutterDataTable .compare-value {
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    font-size: 9pt; /* Smaller for comparison cells */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333; /* Default color for comparison text */
 }
+#shutterDataTable .compare-header {
+    font-size: 9pt;
+}
+/* Retain variance colors from original */
 .compare-value-high-variance {
-    color: #dc3545; /* Red for high variance */
+    color: #dc3545 !important; /* Red for high variance */
     font-weight: bold;
 }
 .compare-value-low-variance {
-    color: #28a745; /* Green for low variance */
+    color: #28a745 !important; /* Green for low variance */
 }
 
-.error-message {
-    color: #dc3545; /* Red */
+
+.error-message { /* General error message styling */
+    color: #FF0000;
     font-weight: bold;
     margin-top: 10px;
 }
+#error-display { /* Container for errors */
+    text-align:center;
+    margin-top:15px;
+    padding: 5px;
+}
+
 
 .footer {
     text-align: center;
-    padding: 15px;
-    background-color: #333;
-    color: white;
-    font-size: 0.8em;
-    /* position: fixed; */ /* If you want a sticky footer */
-    /* bottom: 0; */
-    /* width: 100%; */
+    font-size: 9pt;
     margin-top: auto; /* Pushes footer to bottom in flex container */
+    color: #505050; /* Dark gray footer text */
+    padding: 15px;
+    background-color: #B0B0B0; /* Footer background */
+    border-top: 1px solid #808080;
 }
 
-/* Tab Navigation */
+/* Tab Navigation from Reference */
 .tab-navigation {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #ccc;
+    margin: 10px auto 0; /* Centered, assuming table width is less than 100% */
+    width: 98%; /* Match table width */
+    max-width: 900px; /* Match table max-width */
+    padding-bottom: 0;
+    border-bottom: 2px solid #000080; /* Dark blue border */
 }
-
 .tab-button {
-    padding: 10px 15px;
+    padding: 8px 15px;
     cursor: pointer;
-    border: none;
-    background-color: transparent;
-    font-size: 1em;
+    border: 1px solid #A0A0A0;
+    border-bottom: none;
+    background-color: #E0E0E0;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11pt;
     margin-right: 5px;
-    border-bottom: 3px solid transparent; /* For active indicator */
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    bottom: -1px; /* Sits on the border */
 }
-
+.tab-button:hover {
+    background-color: #D0D0D0;
+}
 .tab-button.active {
-    border-bottom: 3px solid #004080; /* Active tab indicator */
+    background-color: #F0F0F0; /* Match table background */
+    border-color: #808080;
+    border-bottom: 1px solid #F0F0F0; /* Blend with content */
     font-weight: bold;
-    color: #004080;
+    color: #000080;
 }
-
 .tab-content {
-    display: none; /* Hidden by default */
+    display: none;
+    padding-top: 1px;
 }
-
 .tab-content.active {
-    display: block; /* Show active tab content */
+    display: block;
 }
 
+/* Results Log Table Specifics from Reference */
 #resultsLogTable th, #resultsLogTable td {
-    font-size: 0.85em;
-    padding: 6px;
+    border: 1px inset #A0A0A0;
+    padding: 4px 6px;
+    font-size: 9pt; /* Smaller font for log table */
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+}
+#resultsLogTable th {
+    background-color: #A0A0A0;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { text-align: center; width: 5%;} /* # */
+#resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2) { text-align: left; width: 10%;}  /* Time */
+#resultsLogTable th:nth-child(3), #resultsLogTable td:nth-child(3) { text-align: left; width: 12%;}  /* Mode */
+#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; } /* Numerical data */
+#resultsLogTable td:nth-child(n+4) {
+    font-family: "Courier New", Courier, monospace;
 }
 
-/* Hide S3 related columns by default, show if mode needs them */
-/* This is better handled by JS by adding/removing a class to the table or specific cells */
-/* .sensor3-col { display: none; } */
-/* .mode-all .sensor3-col, .mode-outer .sensor3-col { display: table-cell; } */
 
-/* Hide S2 related columns by default, show if mode needs them */
-/* .sensor2-col { display: none; } */
-/* .mode-all .sensor2-col, .mode-inner .sensor2-col { display: table-cell; } */
-
-/* Hide S1 related columns by default, show if mode needs them */
-/* .sensor1-col { display: none; } */
-/* .mode-all .sensor1-col, .mode-outer .sensor1-col { display: table-cell; } */
-
-/* Responsive adjustments (optional) */
+/* Responsive adjustments from original */
 @media (max-width: 768px) {
     .page-container {
         flex-direction: column;
     }
     .config-panel {
-        width: 100%; /* Full width on small screens */
+        width: 100%;
         border-right: none;
         border-bottom: 1px solid #ccc;
     }
     .config-panel.collapsed {
-        width: 100%; 
-        height: 40px; /* Collapse vertically */
+        width: 100%;
+        height: 45px; /* Adjust to match collapsed header height */
+        padding-left: 15px; /* Restore some padding */
+        padding-right: 15px;
     }
-    .config-panel.collapsed .config-header-container h3 {
-        display: block; /* Show "Configuration" text when collapsed vertically */
+    .config-panel.collapsed .config-header-container {
+        justify-content: space-between; /* Keep button to the right */
     }
-     .config-panel.collapsed #configPanelContent {
-        display: none;
+    .config-panel.collapsed h3 { /* Show H3 when vertically collapsed on small screens */
+        opacity: 1;
+        max-width: 100%;
+        padding-bottom: 8px; /* Restore padding */
+        border-bottom-width: 1px; /* Restore border */
+        margin-bottom: 0 !important;
+        flex-grow: 1;
+        pointer-events: auto;
     }
-
+    .config-panel.collapsed #configPanelContent {
+        visibility: hidden; /* Content still hidden */
+        opacity: 0;
+        max-height: 0;
+    }
 
     .header, .status-bar, .footer {
-        border-radius: 0; /* Full width, no rounded corners */
+        border-radius: 0;
+        font-size: smaller;
     }
-    table {
-        font-size: 0.8em; /* Smaller font on small screens */
+    .header { font-size: 14pt; }
+    .status-bar { flex-direction: column; align-items: flex-start; }
+    .status-bar > span { margin-top: 5px; }
+
+
+    table#shutterDataTable, table#resultsLogTable {
+        font-size: 0.8em;
+        width: 100%;
+        max-width: 100%;
+        table-layout: auto; /* Allow table to adjust on small screens */
     }
-    th, td {
-        padding: 6px;
+    #shutterDataTable th, #shutterDataTable td,
+    #resultsLogTable th, #resultsLogTable td {
+        padding: 4px;
+        font-size: 0.9em; /* Relative to table font-size */
+        white-space: normal; /* Allow wrapping */
     }
+    #shutterDataTable td.metric-label { width: 30%; }
+
+    .tab-navigation { width: 100%; }
+    .tab-button { padding: 6px 10px; font-size: 10pt; }
 }
