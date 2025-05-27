@@ -1,73 +1,82 @@
-/* styles.css - Refined version */
+/* styles.css - MacOS 1999 "Platinum" Nightmode Aesthetic */
+
+/* --- Base & Typography --- */
 body {
-    font-family: "Times New Roman", Times, serif;
-    background-color: #C0C0C0; /* Light gray background */
-    color: #000000; /* Black text */
+    font-family: "Verdana", "Geneva", "Lucida Grande", sans-serif; /* Classic Mac friendly fonts */
+    background-color: #2C2C2C; /* Deep charcoal background */
+    color: #D1D1D1; /* Light gray text */
     margin: 0;
     padding: 0;
-    display: flex; /* Added from original for footer push */
+    display: flex;
     min-height: 100vh;
-    flex-direction: column; /* Added from original for footer push */
+    flex-direction: column;
+    font-size: 12px; /* Classic Mac OS had fairly standard font sizes */
+    -webkit-font-smoothing: antialiased; /* Crisper text rendering */
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .page-container {
     display: flex;
-    flex-grow: 1; /* Added from original */
+    flex-grow: 1;
 }
 
+/* --- Configuration Panel (Classic Window Style) --- */
 .config-panel {
-    width: 220px; /* Adjusted from reference's 200px */
-    background-color: #E0E0E0; /* Lighter gray for panel */
-    padding: 15px;
-    border-right: 2px solid #808080; /* Dark gray border */
-    font-size: 10pt;
+    width: 240px;
+    background-color: #383838; /* Dark panel background */
+    padding: 0;
+    border-right: 1px solid #1A1A1A; /* Darker border */
     box-sizing: border-box;
-    transition: width 0.3s ease, padding-left 0.3s ease, padding-right 0.3s ease;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.3);
 }
-.config-header-container {
+.config-header-container { /* Title bar */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    padding: 4px 8px;
+    background-color: #4A4A4A; /* Slightly lighter title bar */
+    /* background-image: repeating-linear-gradient(0deg, #4A4A4A, #4A4A4A 1px, #4F4F4F 1px, #4F4F4F 2px); /* Subtle lines */
+    border-bottom: 1px solid #202020;
     width: 100%;
-    transition: margin-bottom 0.3s ease;
+    box-sizing: border-box;
+    height: 28px; /* Classic title bar height */
 }
 .config-panel h3 {
-    margin-top: 0;
-    margin-bottom: 0;
-    color: #000080; /* Dark blue */
-    border-bottom: 1px solid #A0A0A0; /* Medium gray border */
-    padding-bottom: 8px;
-    font-size: 12pt;
-    flex-grow: 1;
+    margin: 0;
+    color: #E0E0E0; /* Lighter title text */
+    font-size: 13px;
+    font-weight: bold;
     white-space: nowrap;
     overflow: hidden;
-    transition: opacity 0.2s ease, max-width 0.3s ease, padding-bottom 0.3s ease, border-bottom-width 0.3s ease, margin 0.3s ease, flex-grow 0.3s ease;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
 }
-#toggleConfigButton {
-    background: #A0A0A0; /* Medium gray */
-    color: white;
-    border: 1px outset #808080; /* 3D border */
-    padding: 2px 6px;
-    font-size: 12pt;
-    font-weight: bold;
+#toggleConfigButton { /* Classic Mac OS button */
+    background-color: #555555;
+    border: 1px solid;
+    border-color: #777777 #404040 #404040 #777777; /* Bevel */
+    color: #E0E0E0;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 12px;
     cursor: pointer;
-    margin-left: 10px;
-    line-height: 1;
-    flex-shrink: 0;
+    margin-left: 8px;
+    box-shadow: 0 1px 0px rgba(255,255,255,0.1) inset; /* Subtle top highlight */
 }
 #toggleConfigButton:hover {
-    background: #808080; /* Darker gray on hover */
+    background-color: #606060;
+}
+#toggleConfigButton:active {
+    background-color: #484848;
+    border-color: #404040 #777777 #777777 #404040; /* Inset bevel */
+    box-shadow: 0 1px 1px rgba(0,0,0,0.3) inset;
 }
 
 #configPanelContent {
-    transition: opacity 0.2s ease 0.1s, max-height 0.3s ease;
-    opacity: 1;
-    overflow: hidden;
-    max-height: 500px; /* Approximate max height for content */
+    padding: 10px;
+    overflow-y: auto;
+    flex-grow: 1;
 }
 #configPanelContent div {
     margin-bottom: 12px;
@@ -75,345 +84,325 @@ body {
 #configPanelContent label {
     display: block;
     margin-bottom: 4px;
-    font-weight: bold;
-    color: #333333; /* Darker text for labels */
+    font-weight: normal; /* Classic labels weren't always bold */
+    font-size: 11px;
+    color: #B0B0B0;
 }
 #configPanelContent input[type="number"],
-#configPanelContent input[type="text"], /* Added from original */
+#configPanelContent input[type="text"],
 #configPanelContent select {
-    width: calc(100% - 12px);
-    padding: 5px;
-    border: 1px inset #808080; /* 3D border */
-    font-family: "Courier New", Courier, monospace;
-    font-size: 10pt;
+    width: calc(100% - 10px);
+    padding: 4px 5px;
+    border: 1px solid;
+    border-color: #202020 #606060 #606060 #202020; /* Inset border */
+    border-radius: 3px;
+    font-family: "Monaco", "Courier New", Courier, monospace;
+    font-size: 11px;
     box-sizing: border-box;
-    background-color: #F0F0F0; /* Very light gray input background */
+    background-color: #282828; /* Dark input background */
+    color: #E0E0E0; /* Light text in input */
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.3) inset;
+}
+#configPanelContent input[type="number"]:focus,
+#configPanelContent input[type="text"]:focus,
+#configPanelContent select:focus {
+    border-color: #4D87C3; /* Muted blue focus, like selection */
+    background-color: #303030;
+    outline: none;
 }
 .config-panel .data-value {
-    font-family: "Courier New", Courier, monospace;
+    font-family: "Monaco", "Courier New", Courier, monospace;
     font-weight: bold;
-    color: #0000FF; /* Blue for data values */
-    display: block; /* Make span take block for consistent layout */
-    margin-top: 5px;
-    padding: 8px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    color: #7FB0E8; /* Muted blue for data values */
+    display: block;
+    margin-top: 4px;
+    padding: 5px 8px;
+    background-color: #2A2A2A;
+    border: 1px solid #1F1F1F;
+    border-radius: 3px;
+    font-size: 11px;
 }
 .config-panel .error-message {
-    color: #FF0000 !important; /* Red for errors */
+    color: #FF8080 !important; /* Light red for errors */
     font-weight: bold;
+    font-size: 11px;
 }
 
-/* Collapsed State from Reference */
-.config-panel.collapsed {
-    width: 45px;
-    padding-left: 5px;
-    padding-right: 5px;
-}
-.config-panel.collapsed .config-header-container {
-    margin-bottom: 0;
-    justify-content: center;
-}
-.config-panel.collapsed h3 {
-    opacity: 0;
-    max-width: 0;
-    padding-bottom: 0;
-    border-bottom-width: 0;
-    margin: 0 !important;
-    flex-grow: 0;
-    pointer-events: none;
-}
-.config-panel.collapsed #toggleConfigButton {
-    margin-left: 0;
-}
-.config-panel.collapsed #configPanelContent {
-    opacity: 0;
-    max-height: 0;
-    pointer-events: none;
-    visibility: hidden;
-}
+/* Collapsed State */
+.config-panel.collapsed { width: 45px; }
+.config-panel.collapsed .config-header-container { justify-content: center; }
+.config-panel.collapsed h3 { opacity: 0; max-width: 0; pointer-events: none;}
+.config-panel.collapsed #toggleConfigButton { margin-left: 0; }
+.config-panel.collapsed #configPanelContent { opacity: 0; max-height: 0; padding: 0 10px; pointer-events: none; visibility: hidden; }
 
 
+/* --- Main Content Area --- */
 .main-content {
     flex-grow: 1;
-    display: flex; /* For footer */
-    flex-direction: column; /* For footer */
-    background-color: #C0C0C0; /* Match body or use #FFFFFF for content area if preferred */
-    padding: 10px; /* Add some padding around main content area */
+    display: flex;
+    flex-direction: column;
+    background-color: #2C2C2C;
+    padding: 10px;
 }
 
-.header {
-    background-color: #000080; /* Dark blue */
-    color: #FFFF00; /* Yellow text */
-    padding: 10px;
+.header { /* Main window title bar appearance */
+    background-color: #404040; /* Dark title bar */
+    /* background-image: repeating-linear-gradient(0deg, #404040, #404040 1px, #454545 1px, #454545 2px); */
+    color: #E0E0E0;
+    padding: 6px 10px;
     text-align: center;
-    font-size: 18pt;
+    font-size: 16px;
     font-weight: bold;
-    border-bottom: 3px double #000000; /* Black double border */
+    border-bottom: 1px solid #181818;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+    height: 30px;
+    box-sizing: border-box;
 }
 
 .status-bar {
-    background-color: #A0A0A0; /* Medium gray */
-    color: #000000; /* Black text */
-    padding: 5px 10px; /* Reduced padding slightly */
-    font-size: 10pt;
-    border-top: 1px solid #FFFFFF; /* White top border */
-    border-bottom: 1px solid #000000; /* Black bottom border */
+    background-color: #353535;
+    color: #C0C0C0;
+    padding: 5px 10px;
+    font-size: 11px;
+    border-top: 1px solid #4A4A4A;
+    border-bottom: 1px solid #202020;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px; /* Space from header */
-    margin-bottom: 10px; /* Space to tabs/table */
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 .status-bar select {
-    font-family: "Times New Roman", Times, serif;
-    font-size: 9pt;
+    font-family: inherit;
+    font-size: 11px;
     margin-left: 5px;
-    border: 1px inset #808080;
-    background-color: #F0F0F0;
-    padding: 1px 3px;
-    vertical-align: middle;
+    border: 1px solid;
+    border-color: #202020 #585858 #585858 #202020; /* Inset */
+    background-color: #282828;
+    color: #D1D1D1;
+    border-radius: 3px;
+    padding: 2px 3px;
 }
-.status-left-group {
-    display: flex;
-    align-items: center;
-}
-.status-bar .data-value { /* For specific data values in status bar */
+.status-bar .data-value {
     font-weight: bold;
-    font-family: "Courier New", Courier, monospace;
+    font-family: "Monaco", "Courier New", Courier, monospace;
+    color: #7FB0E8; /* Muted blue */
 }
 #esp32-connection-status { font-weight: bold; }
-.esp32-connected { color: #008000; /* Green */ }
-.esp32-disconnected { color: #FF0000; /* Red */ }
-.esp32-unknown { color: #FFA500; /* Orange */ }
-#systemStatus { margin-left: 15px; font-style: italic; }
+.esp32-connected { color: #77DD77; /* Light green */ }
+.esp32-disconnected { color: #FF8080; /* Light red */ }
+.esp32-unknown { color: #FFB347; /* Light orange */ }
+#systemStatus { margin-left: 15px; font-style: italic; color: #999; }
 
 
+/* --- Tables --- */
 table#shutterDataTable, table#resultsLogTable {
-    border: 2px outset #808080; /* 3D outset border */
-    border-collapse: collapse;
-    background-color: #F0F0F0; /* Very light gray table background */
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    width: 98%; /* Adjusted from 95% */
-    max-width: 900px; /* Adjusted max-width */
-    table-layout: fixed; /* Helps with consistent column widths */
+    border: 1px solid;
+    border-color: #505050 #202020 #202020 #505050; /* Outset border for table */
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #3A3A3A; /* Dark table background */
+    margin: 10px auto;
+    width: 98%;
+    max-width: 900px;
+    border-radius: 4px; /* Classic Mac had slightly rounded table corners */
 }
 table#shutterDataTable caption, table#resultsLogTable caption {
-    font-size: 14pt;
+    font-size: 14px;
     font-weight: bold;
     padding: 8px;
-    color: #000080; /* Dark blue caption text */
+    color: #E0E0E0;
+    text-align: left;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    border-bottom: 1px solid #2A2A2A;
 }
 
-/* Default for main table cells */
-#shutterDataTable th, #shutterDataTable td {
-    border: 1px inset #A0A0A0; /* 3D inset border for cells */
-    padding: 5px;
-    font-size: 10pt; /* Slightly smaller than reference's 11pt for more data */
+#shutterDataTable th, #shutterDataTable td,
+#resultsLogTable th, #resultsLogTable td {
+    border: none;
+    border-bottom: 1px solid #2F2F2F; /* Separator lines */
+    padding: 5px 8px;
+    font-size: 11px;
     vertical-align: middle;
-    overflow: hidden;
-    text-align: right; /* Default to right for numbers */
+    text-align: right;
+    color: #D1D1D1;
 }
-#shutterDataTable th {
-    background-color: #A0A0A0; /* Medium gray header background */
-    color: #FFFFFF; /* White header text */
+#shutterDataTable tr:last-child td,
+#resultsLogTable tr:last-child td {
+    border-bottom: none;
+}
+#shutterDataTable th, #resultsLogTable th {
+    background-color: #454545; /* Darker header */
+    color: #FFFFFF;
     font-weight: bold;
     text-align: center;
+    border-bottom: 1px solid #1A1A1A; /* Stronger separator */
+    border-top: 1px solid #5A5A5A; /* Top bevel for header */
+}
+/* Classic Mac OS 9 style striped rows */
+#shutterDataTable tbody tr:nth-child(even) td,
+#resultsLogTable tbody tr:nth-child(even) td {
+    background-color: #353535;
 }
 #shutterDataTable td.metric-label {
     font-weight: bold;
-    text-align: left; /* Left align metric labels */
-    background-color: #DCDCDC; /* Slightly different background for metric labels */
+    text-align: left;
+    background-color: #404040; /* Slightly different for label column */
+    border-right: 1px solid #2F2F2F;
     width: 25%;
+    color: #E8E8E8;
 }
+#shutterDataTable tbody tr:nth-child(even) td.metric-label {
+    background-color: #3B3B3B;
+}
+
 #shutterDataTable .section-header {
-    background-color: #B0B0B0; /* Slightly darker gray for section headers */
-    color: #000000;
+    background-color: #2A2A2A; /* Very dark section header */
+    color: #E0E0E0;
     font-weight: bold;
     text-align: center;
-    font-size: 11pt;
-    border-top: 2px solid #707070;
-    border-bottom: 2px solid #707070;
+    font-size: 12px;
+    border-top: 1px solid #404040;
+    border-bottom: 1px solid #181818;
 }
 #shutterDataTable .section-header select {
-    font-family: "Times New Roman", Times, serif;
-    font-size: 9pt;
+    font-family: inherit;
+    font-size: 10px;
     margin-left: 10px;
-    border: 1px inset #808080;
-    background-color: #F0F0F0;
-    padding: 1px;
+    border: 1px solid #181818;
+    background-color: #303030;
+    color: #C0C0C0;
+    border-radius: 3px;
 }
-#shutterDataTable .data-value { /* For data cells in the main table */
-    font-family: "Courier New", Courier, monospace;
+#shutterDataTable .data-value {
+    font-family: "Monaco", "Courier New", Courier, monospace;
     font-weight: bold;
-    color: #0000FF; /* Blue for data values */
+    color: #7FB0E8; /* Muted blue */
 }
 #shutterDataTable .compare-value {
-    font-family: "Courier New", Courier, monospace;
+    font-family: "Monaco", "Courier New", Courier, monospace;
     text-align: center;
-    font-size: 9pt; /* Smaller for comparison cells */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #333; /* Default color for comparison text */
+    font-size: 10px;
+    color: #A0A0A0;
 }
-#shutterDataTable .compare-header {
-    font-size: 9pt;
-}
-/* Retain variance colors from original */
-.compare-value-high-variance {
-    color: #dc3545 !important; /* Red for high variance */
-    font-weight: bold;
-}
-.compare-value-low-variance {
-    color: #28a745 !important; /* Green for low variance */
-}
+.compare-value-high-variance { color: #FF8080 !important; font-weight: bold; }
+.compare-value-low-variance { color: #77DD77 !important; }
 
 
-.error-message { /* General error message styling */
-    color: #FF0000;
-    font-weight: bold;
-    margin-top: 10px;
-}
-#error-display { /* Container for errors */
-    text-align:center;
-    margin-top:15px;
-    padding: 5px;
-}
+.error-message { color: #FF8080; font-weight: bold; margin-top: 10px; font-size: 11px;}
+#error-display { text-align:center; margin-top:15px; padding: 5px; color: #FF8080;}
 
 
 .footer {
     text-align: center;
-    font-size: 9pt;
-    margin-top: auto; /* Pushes footer to bottom in flex container */
-    color: #505050; /* Dark gray footer text */
-    padding: 15px;
-    background-color: #B0B0B0; /* Footer background */
-    border-top: 1px solid #808080;
+    font-size: 10px;
+    margin-top: auto;
+    color: #909090;
+    padding: 10px;
+    background-color: #252525; /* Dark footer */
+    border-top: 1px solid #3A3A3A;
 }
 
-/* Tab Navigation from Reference */
+/* --- Tab Navigation (Classic Mac OS 9 style) --- */
 .tab-navigation {
-    margin: 10px auto 0; /* Centered, assuming table width is less than 100% */
-    width: 98%; /* Match table width */
-    max-width: 900px; /* Match table max-width */
+    margin: 10px auto 0;
+    width: 98%;
+    max-width: 900px;
     padding-bottom: 0;
-    border-bottom: 2px solid #000080; /* Dark blue border */
+    border-bottom: 1px solid #1A1A1A; /* Dark underline for tabs */
+    display: flex;
+    height: 26px; /* Control tab height */
 }
 .tab-button {
-    padding: 8px 15px;
+    padding: 4px 12px 5px 12px; /* Top padding less, bottom more for bevel */
     cursor: pointer;
-    border: 1px solid #A0A0A0;
+    border: 1px solid;
+    border-color: #5A5A5A #2A2A2A #2A2A2A #5A5A5A; /* Outset bevel */
     border-bottom: none;
-    background-color: #E0E0E0;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 11pt;
-    margin-right: 5px;
-    border-radius: 4px 4px 0 0;
+    background-color: #404040; /* Default tab color */
+    font-family: inherit;
+    font-size: 12px;
+    margin-right: 2px;
+    border-radius: 4px 4px 0 0; /* Rounded top */
+    color: #C0C0C0;
     position: relative;
-    bottom: -1px; /* Sits on the border */
+    box-shadow: 0 1px 0px rgba(255,255,255,0.05) inset;
 }
 .tab-button:hover {
-    background-color: #D0D0D0;
+    background-color: #484848;
+    color: #DCDCDC;
 }
 .tab-button.active {
-    background-color: #F0F0F0; /* Match table background */
-    border-color: #808080;
-    border-bottom: 1px solid #F0F0F0; /* Blend with content */
+    background-color: #3A3A3A; /* Matches content area */
+    border-color: #5A5A5A #202020 #3A3A3A #5A5A5A; /* Border connects to content */
+    color: #FFFFFF;
     font-weight: bold;
-    color: #000080;
+    z-index: 1;
+    padding-bottom: 6px; /* Slightly more to cover bottom border */
+    margin-bottom: -1px; /* Pull up to cover main border */
 }
 .tab-content {
     display: none;
-    padding-top: 1px;
+    padding: 10px; /* Content padding */
+    background: #3A3A3A; /* Match active tab */
+    border: 1px solid;
+    border-color: #5A5A5A #202020 #202020 #5A5A5A; /* Outset border for content */
+    border-top: none; /* Top covered by tab nav */
+    border-radius: 0 0 4px 4px; /* Rounded bottom */
+    margin-bottom: 10px;
 }
-.tab-content.active {
-    display: block;
-}
+.tab-content.active { display: block; }
 
-/* Results Log Table Specifics from Reference */
-#resultsLogTable th, #resultsLogTable td {
-    border: 1px inset #A0A0A0;
-    padding: 4px 6px;
-    font-size: 9pt; /* Smaller font for log table */
-    vertical-align: middle;
-    overflow: hidden;
-    white-space: nowrap;
-}
-#resultsLogTable th {
-    background-color: #A0A0A0;
-    color: #FFFFFF;
-    font-weight: bold;
-}
-#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { text-align: center; width: 5%;} /* # */
-#resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2) { text-align: left; width: 10%;}  /* Time */
-#resultsLogTable th:nth-child(3), #resultsLogTable td:nth-child(3) { text-align: left; width: 12%;}  /* Mode */
-#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; } /* Numerical data */
-#resultsLogTable td:nth-child(n+4) {
-    font-family: "Courier New", Courier, monospace;
-}
+/* Results Log Table Specifics */
+#resultsLogTable th, #resultsLogTable td { padding: 4px 6px; font-size: 10px; }
+#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%;}
+#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; }
+#resultsLogTable td:nth-child(n+4) { font-family: "Monaco", "Courier New", Courier, monospace; }
 
 
-/* Responsive adjustments from original */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .page-container {
-        flex-direction: column;
-    }
-    .config-panel {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #ccc;
-    }
-    .config-panel.collapsed {
-        width: 100%;
-        height: 45px; /* Adjust to match collapsed header height */
-        padding-left: 15px; /* Restore some padding */
-        padding-right: 15px;
-    }
-    .config-panel.collapsed .config-header-container {
-        justify-content: space-between; /* Keep button to the right */
-    }
-    .config-panel.collapsed h3 { /* Show H3 when vertically collapsed on small screens */
-        opacity: 1;
-        max-width: 100%;
-        padding-bottom: 8px; /* Restore padding */
-        border-bottom-width: 1px; /* Restore border */
-        margin-bottom: 0 !important;
-        flex-grow: 1;
-        pointer-events: auto;
-    }
-    .config-panel.collapsed #configPanelContent {
-        visibility: hidden; /* Content still hidden */
-        opacity: 0;
-        max-height: 0;
-    }
-
-    .header, .status-bar, .footer {
-        border-radius: 0;
-        font-size: smaller;
-    }
-    .header { font-size: 14pt; }
-    .status-bar { flex-direction: column; align-items: flex-start; }
-    .status-bar > span { margin-top: 5px; }
-
-
-    table#shutterDataTable, table#resultsLogTable {
-        font-size: 0.8em;
-        width: 100%;
-        max-width: 100%;
-        table-layout: auto; /* Allow table to adjust on small screens */
-    }
+    body { font-size: 11px; }
+    .page-container { flex-direction: column; }
+    .config-panel { width: 100%; border-right: none; border-bottom: 1px solid #1A1A1A; }
+    .config-panel.collapsed h3 { opacity: 1; max-width: 100%; pointer-events: auto; }
+    .header { font-size: 14px; border-radius: 0;}
+    .status-bar { flex-direction: column; align-items: flex-start; font-size: 10px; }
+    table#shutterDataTable, table#resultsLogTable { width: 100%; max-width: 100%; border-radius: 0; }
     #shutterDataTable th, #shutterDataTable td,
-    #resultsLogTable th, #resultsLogTable td {
-        padding: 4px;
-        font-size: 0.9em; /* Relative to table font-size */
-        white-space: normal; /* Allow wrapping */
-    }
-    #shutterDataTable td.metric-label { width: 30%; }
-
-    .tab-navigation { width: 100%; }
-    .tab-button { padding: 6px 10px; font-size: 10pt; }
+    #resultsLogTable th, #resultsLogTable td { padding: 3px; font-size: 0.9em; white-space: normal; }
+    .tab-navigation { width: 100%; height: auto; }
+    .tab-button { padding: 5px 8px; font-size: 11px; }
 }
+
+/* Classic Mac OS 9 Scrollbars (WebKit only, very hard to replicate perfectly) */
+::-webkit-scrollbar {
+    width: 16px; /* Chunky */
+    height: 16px;
+}
+::-webkit-scrollbar-track {
+    background: #282828; /* Dark track */
+    border: 1px solid #1F1F1F;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #505050;
+    border: 1px solid;
+    border-color: #6A6A6A #3A3A3A #3A3A3A #6A6A6A; /* Bevel */
+    border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #585858;
+}
+::-webkit-scrollbar-button { /* Square buttons with arrows */
+    background-color: #484848;
+    border: 1px solid;
+    border-color: #606060 #303030 #303030 #606060;
+    border-radius: 2px;
+    display: block; /* Make them visible */
+    height: 16px;
+    width: 16px;
+}
+/* Arrows (using pseudo-elements, very basic) */
+::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23A0A0A0'><polygon points='5,2 2,8 8,8'/></svg>"); background-repeat: no-repeat; background-position: center center; }
+::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23A0A0A0'><polygon points='5,8 2,2 8,2'/></svg>"); background-repeat: no-repeat; background-position: center center; }
+/* Horizontal scrollbar buttons would need different arrows */

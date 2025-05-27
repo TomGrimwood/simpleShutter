@@ -1,14 +1,45 @@
 // api.js - ESP32 specific, largely unchanged
 
-// Function to fetch data from the ESP32
-async function getEspData() {
-    const response = await fetch('/api/getdata');
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Error fetching data: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+let webSocket;
+const wsCallbacks = {
+    onOpen: null,
+    onMessage: null,
+    onError: null,
+    onClose: null,
+};
+
+function connectWebSocket(callbacks) {
+    if (callbacks) {
+        wsCallbacks.onOpen = callbacks.onOpen;
+        wsCallbacks.onMessage = callbacks.onMessage;
+        wsCallbacks.onError = callbacks.onError;
+        wsCallbacks.onClose = callbacks.onClose;
     }
-    return await response.json();
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    console.log("Attempting to connect to WebSocket:", wsUrl);
+    webSocket = new WebSocket(wsUrl);
+
+    webSocket.onopen = (event) => {
+        console.log("WebSocket connection established to " + wsUrl);
+        if (wsCallbacks.onOpen) wsCallbacks.onOpen(event);
+    };
+
+    webSocket.onmessage = (event) => {
+        if (wsCallbacks.onMessage) wsCallbacks.onMessage(event.data);
+    };
+
+    webSocket.onerror = (event) => {
+        console.error("WebSocket error:", event);
+        if (wsCallbacks.onError) wsCallbacks.onError(event);
+    };
+
+    webSocket.onclose = (event) => {
+        console.log(`WebSocket connection closed. Code: ${event.code}, Reason: "${event.reason}", Clean: ${event.wasClean}`);
+        if (wsCallbacks.onClose) wsCallbacks.onClose(event);
+    };
 }
 
 // Function to set the ESP32 measurement mode
@@ -40,6 +71,14 @@ async function resetEspSystem() {
     return await response.json();
 }
 
+// Function to send data (if needed, though primary flow is server-to-client for shutter data)
+function sendWebSocketMessage(message) {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+        webSocket.send(message);
+    } else {
+        console.warn("WebSocket not open. Cannot send message.");
+    }
+}
 function initializeApiHandlers() {
     // This function is minimal as api.js primarily provides functions for other modules.
     // No direct DOM listeners are set up here.
