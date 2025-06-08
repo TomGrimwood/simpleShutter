@@ -1,5 +1,5 @@
 // results-log.js
-// Depends on ui-helpers.js for DOM access, setText, getText, showConfirmationModal, activateTab, updateSystemStatus
+// Depends on ui-helpers.js for DOM access, setText, getText, showPromptModal, activateTab, updateSystemStatus
 // Depends indirectly on data-updater.js for AppState (consider making this passed in or event-based)
 // Depends on shutter-calcs.js for calculateAndDisplayComparison
 // Global state for staging and buckets
@@ -21,7 +21,7 @@ function addResultToStagingArea() {
 
 
     // Ensure DOM elements exist
-    if (!DOM.sensorModeSelector || !DOM.resultsLogTableBody || !DOM.stagingCount || !DOM.bucketNameInputStaging || !DOM.savedBucketsContainer || typeof window.showConfirmationModal !== 'function' || typeof getText !== 'function' || typeof updateSystemStatus !== 'function') {
+    if (!DOM.sensorModeSelector || !DOM.resultsLogTableBody || !DOM.stagingCount || !DOM.bucketNameInputStaging || !DOM.savedBucketsContainer || typeof window.showPromptModal !== 'function' || typeof getText !== 'function' || typeof updateSystemStatus !== 'function') { // Changed showConfirmationModal to showPromptModal
          console.error("Results log initialization failed: Missing DOM elements or helper functions.");
          if (typeof window.updateSystemStatus === 'function') updateSystemStatus("UI Error: Cannot add result to staging.");
          return;
@@ -39,7 +39,7 @@ function addResultToStagingArea() {
         exp_s2_ms: getText('exp_ms_s2'),
         exp_s3_ms: getText('exp_ms_s3'),
         hz_s1: getText('hz_s1'), // ADDED: Hz per sensor
-        hz_s2: getText('hz_s2'), // ADDED: Hz per sensor
+        hz_s2: getText('hz_s2'), // ADDED: Hz per_s2ensor
         hz_s3: getText('hz_s3'), // ADDED: Hz per sensor
         avg_hz: getText('hz_avg'),
         // Store the segment curtain travel times
@@ -55,22 +55,6 @@ function addResultToStagingArea() {
         // The averaged Exp Var in the bucket summary/deep dive will be the average of these instant values.
         exp_var_pct: getText('exp_var_pct')
     };
-
-     // Prevent adding results that are all '---', unless it's just the compare values
-     const hasMeaningfulData = Object.keys(newResult).some(key =>
-         key !== 'id' && key !== 'timestamp' && key !== 'mode' &&
-         newResult[key] !== '---' && newResult[key] !== null && typeof newResult[key] !== 'undefined' && String(newResult[key]).trim() !== ''
-         // Also consider if specific critical values exist based on mode?
-         // For simplicity now, just check if *any* calculated value is not '---'
-         // Exclude per-sensor Hz from this check as they might be '---' in some modes but other data is valid
-         && key !== 'hz_s1' && key !== 'hz_s2' && key !== 'hz_s3'
-         // Exclude exp_var_pct if only one sensor is active
-         && key !== 'exp_var_pct'
-          // Exclude segment travel times if not in ALL mode
-         && !((key === 'c1_s1s2_ms' || key === 'c1_s2s3_ms' || key === 'c2_s1s2_ms' || key === 'c2_s2s3_ms') && !currentModeText.includes("All"))
-          // Exclude total travel, full open, slit if not in ALL or OUTER mode
-         && !((key === 'c1_total_ms' || key === 'c2_total_ms' || key === 'full_open_duration_ms' || key === 'slit_mm') && currentModeText.includes("Inner"))
-     );
 
      // Refined check: Ensure at least one exposure or total travel time is present and not '---' based on mode
      const hasRelevantMeasurement =
@@ -105,22 +89,20 @@ function renderStagingTable() {
         row.dataset.resultId = entry.id;
 
         // Create cells in the correct order as defined by the table headers
-        // We only display a subset of the stored data in the staging table for brevity
         const cellKeysInOrder = [
-             'id', 'timestamp', 'mode',
-             'exp_s1_ms', 'exp_s2_ms', 'exp_s3_ms', 'avg_hz', // Show individual exposures, overall speed
-             // Do NOT show segment times in staging table, only totals for now
+             // 'id', // Removed # column
+             'timestamp', 'mode',
+             'exp_s1_ms', 'exp_s2_ms', 'exp_s3_ms', 'avg_hz',
              'c1_total_ms', 'c2_total_ms',
              'full_open_duration_ms', 'slit_mm', 'exp_var_pct'
         ];
 
         cellKeysInOrder.forEach(key => {
             const cell = row.insertCell();
-             // Handle displaying just the number for ID
-             if (key === 'id') {
+             // Handle displaying just the number for ID (no longer used for 'id' key here)
+             if (key === 'id') { // This block is effectively unused now that 'id' is removed from cellKeysInOrder
                  cell.textContent = entry[key].startsWith('stage-') ? entry[key].substring(6) : entry[key];
              } else {
-                 // Use the value directly from the entry object
                  cell.textContent = entry[key] !== undefined ? entry[key] : '---';
              }
         });
@@ -129,7 +111,7 @@ function renderStagingTable() {
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
         removeBtn.classList.add('action-button', 'danger');
-        removeBtn.title = `Remove entry ${entry.id} from staging`;
+        removeBtn.title = `Remove entry ${entry.id.startsWith('stage-') ? entry.id.substring(6) : entry.id} from staging`;
         removeBtn.onclick = () => removeResultFromStaging(entry.id);
         actionCell.appendChild(removeBtn);
     });
@@ -137,14 +119,12 @@ function renderStagingTable() {
 }
 
 function removeResultFromStaging(resultId) {
-    if (typeof window.showConfirmationModal !== 'function' || typeof updateSystemStatus !== 'function') { console.error("showConfirmationModal or updateSystemStatus not available."); return; }
-    showConfirmationModal(`Remove staging entry ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId}? This cannot be undone.`, (confirmed) => {
-        if (confirmed) {
-            window.stagedResults = window.stagedResults.filter(r => r.id !== resultId);
-            renderStagingTable();
-             updateSystemStatus(`Staging entry ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId} removed.`);
-        }
-    });
+    // Removed confirmation prompt as requested
+    if (typeof updateSystemStatus !== 'function') { console.error("updateSystemStatus not available."); return; }
+
+    window.stagedResults = window.stagedResults.filter(r => r.id !== resultId);
+    renderStagingTable();
+    updateSystemStatus(`Staging entry ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId} removed.`);
 }
 
 function clearStagingArea() {
@@ -164,14 +144,14 @@ function clearStagingArea() {
      }
 
 
-     // Ensure showConfirmationModal is available
-     if (typeof window.showConfirmationModal !== 'function') {
-         console.error("showConfirmationModal not available in clearStagingArea. Cannot confirm clear.");
+     // Ensure showPromptModal is available (renamed from showConfirmationModal)
+     if (typeof window.showPromptModal !== 'function') {
+         console.error("showPromptModal not available in clearStagingArea. Cannot confirm clear.");
          if (typeof window.updateSystemStatus === 'function') updateSystemStatus("UI Error: Confirmation modal missing.");
          return; // Exit if confirmation modal is missing
      }
 
-    showConfirmationModal("Clear all unbucketed results from the staging area? This cannot be undone.", (confirmed) => {
+    showPromptModal("Clear all unbucketed results from the staging area? This cannot be undone.", (confirmed) => {
         if (confirmed) {
             window.stagedResults = [];
             renderStagingTable();
@@ -185,41 +165,122 @@ function clearStagingArea() {
     });
 }
 
-function createBucket() {
-    if (!DOM.bucketNameInputStaging || !DOM.savedBucketsContainer || typeof window.showConfirmationModal !== 'function' || typeof updateSystemStatus !== 'function') { console.error("Bucket creation elements or helpers not found."); return; }
-    const bucketName = DOM.bucketNameInputStaging.value.trim();
-    if (!bucketName) {
-        updateSystemStatus("Please enter a name for the bucket.");
-        DOM.bucketNameInputStaging.focus();
-        return;
+/**
+ * Creates a new bucket with provided results and a name.
+ * Assumes the name is already validated and unique.
+ * This is an internal helper and should not be called directly from UI events.
+ * @param {Array<object>} results An array of result objects to add to the new bucket.
+ * @param {string} name The validated and unique name for the new bucket.
+ * @returns {boolean} True if bucket was created, false otherwise.
+ */
+function createBucketInternal(results, name) {
+    if (!name || name.trim() === "") {
+        console.error("createBucketInternal: Bucket name cannot be empty.");
+        return false;
     }
-    if (window.stagedResults.length === 0) {
-        updateSystemStatus("No results in staging area to create a bucket.");
-        return;
+    if (!Array.isArray(results) || results.length === 0) {
+        console.warn("createBucketInternal: No results provided to create bucket.");
+        return false;
     }
-     if (window.resultBuckets.some(b => b.name.toLowerCase() === bucketName.toLowerCase())) { // Case-insensitive check
-        updateSystemStatus(`Bucket "${bucketName}" already exists. Choose a different name.`);
-        DOM.bucketNameInputStaging.focus();
-        return;
+    if (window.resultBuckets.some(b => b.name.toLowerCase() === name.toLowerCase())) {
+        console.warn(`createBucketInternal: Bucket "${name}" already exists. This should have been caught by caller.`);
+        return false; // Should not happen if caller validates names
     }
 
     const newBucket = {
         id: `bucket-${bucketIdCounter++}`,
-        name: bucketName,
+        name: name.trim(),
         createdAt: new Date().toLocaleString(),
-        results: JSON.parse(JSON.stringify(window.stagedResults)), // Deep copy of current staged results
-        averages: {}, // Calculated below
-        comparisonAverages: {}, // Calculated below (these are average percentages, not used for deep dive display anymore)
+        results: JSON.parse(JSON.stringify(results)), // Deep copy
+        averages: {},
+        comparisonAverages: {},
         isExpanded: false
     };
-    calculateBucketAverages(newBucket); // Calculate averages immediately upon creation
-    window.resultBuckets.unshift(newBucket); // Add to the beginning
-    window.stagedResults = []; // Clear staging
-    DOM.bucketNameInputStaging.value = ''; // Clear input
-    renderStagingTable(); // Re-render staging (now empty)
-    renderSavedBuckets(); // Re-render the list of buckets (including the new one)
-    updateSystemStatus(`Bucket "${bucketName}" created with ${newBucket.results.length} measurements.`);
+    calculateBucketAverages(newBucket);
+    window.resultBuckets.unshift(newBucket);
+    renderSavedBuckets(); // Re-render to show new bucket
+    return true;
 }
+
+/**
+ * Public function to create a new bucket. Handles prompting for name and validation.
+ * @param {Array<object>|null} [resultsToBucket=null] Optional. An array of result objects to add. If null, attempts to use `window.stagedResults` (for the button).
+ * @param {string|null} [initialBucketName=null] Optional. A pre-suggested name.
+ * @returns {Promise<void>} Resolves when the bucket creation process (including prompts) is complete.
+ */
+async function createBucket(resultsToBucket = null, initialBucketName = null) {
+    if (!DOM.bucketNameInputStaging || !DOM.savedBucketsContainer || typeof window.showPromptModal !== 'function' || typeof updateSystemStatus !== 'function') {
+        console.error("Bucket creation elements or helpers not found.");
+        return;
+    }
+
+    let results = [];
+    let isFromStagingButton = false;
+
+    if (resultsToBucket && Array.isArray(resultsToBucket) && resultsToBucket.length > 0) {
+        results = resultsToBucket; // If results are explicitly passed (e.g., from drag-drop)
+    } else if (window.stagedResults.length > 0 && initialBucketName === null) { // From "Create Bucket from Staging" button
+        results = JSON.parse(JSON.stringify(window.stagedResults)); // Deep copy staging area
+        isFromStagingButton = true;
+    } else {
+        updateSystemStatus("No results to create a bucket.");
+        return;
+    }
+
+    if (results.length === 0) { // Double check after determining source
+        updateSystemStatus("No valid results found to create a bucket.");
+        return;
+    }
+
+    let bucketName = initialBucketName || DOM.bucketNameInputStaging.value.trim();
+    const defaultBucketName = `Bucket ${bucketIdCounter}`;
+
+    // Always prompt for a name for the public 'createBucket' function, unless an initial name is provided AND not from staging button
+    if (!initialBucketName || isFromStagingButton) {
+        let nameValid = false;
+        while (!nameValid) {
+            const promptResult = await window.showPromptModal("Enter a name for the new bucket:", null, {
+                placeholder: defaultBucketName,
+                defaultValue: defaultBucketName,
+                confirmText: 'Create',
+                cancelText: 'Cancel'
+            });
+
+            if (promptResult === null) { // User cancelled
+                updateSystemStatus("Bucket creation cancelled.");
+                return;
+            }
+
+            bucketName = promptResult.trim();
+
+            if (bucketName === "") {
+                updateSystemStatus("Bucket name cannot be empty. Please try again.");
+                // Loop continues to re-prompt
+            } else if (window.resultBuckets.some(b => b.name.toLowerCase() === bucketName.toLowerCase())) {
+                updateSystemStatus(`Bucket "${bucketName}" already exists. Please enter a different name.`);
+                // Loop continues to re-prompt
+            } else {
+                nameValid = true; // Name is valid and unique
+            }
+        }
+    }
+
+    // Now, bucketName is guaranteed to be valid and unique, or was provided as initialBucketName
+    const success = createBucketInternal(results, bucketName);
+
+    if (success && isFromStagingButton) {
+        // Fix for Issue 2: Clear staging only if it was the source for "Create bucket from staging" button
+        window.stagedResults = [];
+        DOM.bucketNameInputStaging.value = '';
+        renderStagingTable(); // Re-render staging to show it's cleared
+        updateSystemStatus(`Bucket "${bucketName}" created with ${results.length} measurements. Staging area cleared.`);
+    } else if (success) {
+         updateSystemStatus(`Bucket "${bucketName}" created with ${results.length} measurements.`);
+    } else {
+         updateSystemStatus("Failed to create bucket (internal error or name issue).");
+    }
+}
+
 
 function calculateBucketAverages(bucket) {
     const numEntries = bucket.results.length;
@@ -404,15 +465,229 @@ function calculateBucketAverages(bucket) {
      });
 }
 
+let draggedResultId = null;
+
+function addDragListenersToStagingRows() {
+    // Ensure resultsLogTableBody exists before trying to add listeners
+    if (!DOM.resultsLogTableBody) {
+         console.warn("DOM.resultsLogTableBody not found, cannot add drag listeners to staging rows.");
+         return;
+    }
+    // Attach listeners to tbody and use event delegation
+    // Remove existing listeners first to prevent duplicates
+    DOM.resultsLogTableBody.removeEventListener('dragstart', handleDragStart);
+    DOM.resultsLogTableBody.removeEventListener('dragend', handleDragEnd);
+    DOM.resultsLogTableBody.addEventListener('dragstart', handleDragStart);
+    DOM.resultsLogTableBody.addEventListener('dragend', handleDragEnd);
+
+     // Add draggable attribute to existing and future rows
+     DOM.resultsLogTableBody.querySelectorAll('.staging-row').forEach(row => {
+         row.draggable = true;
+     });
+}
+
+function handleDragStart(event) {
+    // Use event delegation: check if the actual target is a staging-row
+    const targetRow = event.target.closest('.staging-row');
+    if (!targetRow) return;
+
+    draggedResultId = targetRow.dataset.resultId;
+    event.target.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'copyMove';
+    event.dataTransfer.setData('text/plain', draggedResultId);
+    // Optionally set a drag image
+    // event.dataTransfer.setDragImage(event.target, 0, 0);
+
+    if (typeof window.updateSystemStatus === 'function') updateSystemStatus(`Dragging result: ${draggedResultId.startsWith('stage-') ? draggedResultId.substring(6) : draggedResultId}`);
+    else console.log(`Dragging result: ${draggedResultId}`);
+}
+
+function handleDragEnd(event) {
+     // Use event delegation: check if the actual target was a staging-row
+     const targetRow = event.target.closest('.staging-row');
+     if (!targetRow) return;
+
+    targetRow.classList.remove('dragging');
+    draggedResultId = null; // Reset dragged state regardless of drop success
+
+    // Remove drag-over class from all potential drop targets
+    document.querySelectorAll('.bucket-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    if (DOM.newBucketDropZone) DOM.newBucketDropZone.classList.remove('drag-over'); // NEW: Clear for new bucket drop zone
+     if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Drag ended.");
+     else console.log("Drag ended.");
+}
+
+// Handler for existing buckets
+function handleDragOverBucket(event) {
+    const dropTargetBucket = event.target.closest('.bucket-item');
+    if (!dropTargetBucket) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    dropTargetBucket.classList.add('drag-over');
+}
+
+// Handler for existing buckets
+function handleDragLeaveBucket(event) {
+    const currentTargetBucket = event.currentTarget;
+    const relatedTargetBucket = event.relatedTarget ? event.relatedTarget.closest('.bucket-item') : null;
+
+    if (currentTargetBucket && currentTargetBucket !== relatedTargetBucket) {
+         currentTargetBucket.classList.remove('drag-over');
+    }
+}
+
+// Handler for existing buckets
+function handleDropBucket(event) {
+    event.preventDefault();
+    const targetBucketElement = event.target.closest('.bucket-item');
+    if (targetBucketElement) {
+        targetBucketElement.classList.remove('drag-over');
+    }
+
+    if (!targetBucketElement || !draggedResultId) {
+        console.error("Drop error: Missing target element or dragged result ID.");
+         if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error moving result: Drop target invalid.");
+        return;
+    }
+
+    const targetBucketId = targetBucketElement.dataset.bucketId;
+    const resultToMoveIndex = window.stagedResults.findIndex(r => r.id === draggedResultId);
+    const targetBucket = window.resultBuckets.find(b => b.id === targetBucketId);
+
+    if (resultToMoveIndex > -1 && targetBucket) {
+         const resultToMove = window.stagedResults[resultToMoveIndex];
+        targetBucket.results.unshift(JSON.parse(JSON.stringify(resultToMove)));
+        calculateBucketAverages(targetBucket);
+        window.stagedResults.splice(resultToMoveIndex, 1);
+        renderStagingTable();
+        renderSavedBuckets();
+        if (typeof window.updateSystemStatus === 'function') updateSystemStatus(`Result ${draggedResultId.startsWith('stage-') ? draggedResultId.substring(6) : draggedResultId} moved to bucket "${targetBucket.name}".`);
+        else console.log(`Result ${draggedResultId} moved to bucket "${targetBucket.name}".`);
+    } else {
+        console.error("Drop error: Result or bucket not found.", { draggedResultId, targetBucketId, resultIndex: resultToMoveIndex, targetBucket: !!targetBucket });
+        if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error moving result: Result or bucket not found.");
+    }
+}
+
+// NEW: Add this function to the global scope or ensure it's accessible
+// This function needs to be declared globally or explicitly exported if using modules.
+function addDragListenersToNewBucketDropZone() {
+    // Ensure DOM.newBucketDropZone exists before trying to add listeners
+    if (!DOM.newBucketDropZone) {
+        console.warn("DOM.newBucketDropZone not found, cannot add drag listeners to new bucket drop zone.");
+        return;
+    }
+    // Remove existing listeners first to prevent duplicates
+    DOM.newBucketDropZone.removeEventListener('dragover', handleDragOverNewBucket);
+    DOM.newBucketDropZone.removeEventListener('dragleave', handleDragLeaveNewBucket);
+    DOM.newBucketDropZone.removeEventListener('drop', handleDropNewBucket);
+
+    // Add new listeners
+    DOM.newBucketDropZone.addEventListener('dragover', handleDragOverNewBucket);
+    DOM.newBucketDropZone.addEventListener('dragleave', handleDragLeaveNewBucket);
+    DOM.newBucketDropZone.addEventListener('drop', handleDropNewBucket);
+}
+
+// NEW: Handler for the new bucket drop zone
+function handleDragOverNewBucket(event) {
+    if (!DOM.newBucketDropZone) return; // Defensive check
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy'; // Changed to 'copy' since it creates a new bucket
+    DOM.newBucketDropZone.classList.add('drag-over');
+}
+
+// NEW: Handler for the new bucket drop zone
+function handleDragLeaveNewBucket(event) {
+    if (!DOM.newBucketDropZone) return; // Defensive check
+    // Check if the relatedTarget is outside the drop zone
+    const newBucketZone = event.currentTarget;
+    if (newBucketZone && !newBucketZone.contains(event.relatedTarget)) {
+        newBucketZone.classList.remove('drag-over');
+    }
+}
+
+async function handleDropNewBucket(event) {
+    event.preventDefault();
+    if (DOM.newBucketDropZone) DOM.newBucketDropZone.classList.remove('drag-over'); // Remove highlight
+
+    // FIX: Capture draggedResultId in a local variable before any await calls
+    const resultIdBeingDropped = draggedResultId;
+
+    if (!resultIdBeingDropped) { // Use the captured local variable
+        console.error("Drop error: No result ID found for new bucket creation.");
+        if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error creating new bucket: No result selected.");
+        return;
+    }
+
+    const resultToMoveIndex = window.stagedResults.findIndex(r => r.id === resultIdBeingDropped); // Use captured local variable
+    if (resultToMoveIndex === -1) {
+        console.error("Drop error: Dragged result not found in staging area for new bucket creation.");
+        if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error creating new bucket: Result not found.");
+        return;
+    }
+    const resultToMove = window.stagedResults[resultToMoveIndex];
+
+    const defaultBucketName = `Bucket ${bucketIdCounter}`;
+    let newBucketName = null;
+    let nameValid = false;
+
+    // Loop to prompt for a valid and unique bucket name
+    while (!nameValid) {
+        const promptResult = await window.showPromptModal(
+            `Enter a name for the new bucket (containing result ${resultIdBeingDropped.substring(6)}):`, // Use captured local variable
+            null,
+            {
+                placeholder: defaultBucketName,
+                defaultValue: defaultBucketName,
+                confirmText: 'Create',
+                cancelText: 'Cancel'
+            }
+        );
+
+        if (promptResult === null) { // User cancelled
+            updateSystemStatus("New bucket creation cancelled.");
+            return; // Exit the function if cancelled
+        }
+
+        newBucketName = promptResult.trim();
+
+        if (newBucketName === "") {
+            updateSystemStatus("Bucket name cannot be empty. Please try again.");
+            // Loop continues to re-prompt
+        } else if (window.resultBuckets.some(b => b.name.toLowerCase() === newBucketName.toLowerCase())) {
+            updateSystemStatus(`Bucket "${newBucketName}" already exists. Please enter a different name.`);
+            // Loop continues to re-prompt
+        } else {
+            nameValid = true; // Name is valid and unique
+        }
+    }
+
+    // Name is now guaranteed to be valid and unique
+    const bucketCreationSuccess = createBucketInternal([JSON.parse(JSON.stringify(resultToMove))], newBucketName);
+
+    if (bucketCreationSuccess) {
+        // If bucket was successfully created, remove the original from staging
+        window.stagedResults.splice(resultToMoveIndex, 1);
+        renderStagingTable();
+        updateSystemStatus(`Result ${resultIdBeingDropped.substring(6)} moved to new bucket "${newBucketName}".`); // Use captured local variable
+    } else {
+        updateSystemStatus("Failed to create new bucket (internal error after name validation).");
+        // This case should ideally not be hit if name validation is perfect,
+        // but it's a fallback for `createBucketInternal` failing for other reasons.
+    }
+}
 
 function renderSavedBuckets() {
-    if (!DOM.savedBucketsContainer || typeof window.showConfirmationModal !== 'function' || typeof window.activateTab !== 'function' || typeof window.updateSystemStatus !== 'function') {
+    if (!DOM.savedBucketsContainer || typeof window.showPromptModal !== 'function' || typeof window.activateTab !== 'function' || typeof window.updateSystemStatus !== 'function') { // Changed showConfirmationModal to showPromptModal
          console.error("Bucket rendering failed: Missing DOM elements or helper functions.");
          return;
     }
     DOM.savedBucketsContainer.innerHTML = '';
     if (window.resultBuckets.length === 0) {
         DOM.savedBucketsContainer.innerHTML = '<p style="text-align:center; color:#A0A0B0; grid-column: 1 / -1;">No measurement buckets saved yet.</p>';
+        // NEW: Also add drag listener to new bucket drop zone here, as it might be rendered empty first
+        addDragListenersToNewBucketDropZone();
         return;
     }
 
@@ -522,15 +797,14 @@ function renderSavedBuckets() {
             detailsTable.className = 'bucket-details-table'; // Use general table styling
             // UPDATED table headers for expanded content to include segment times
             let detailsTableHTML = `<thead><tr>
-                <th>#</th><th>Time</th><th>Mode</th>
+                <th>Time</th><th>Mode</th>
                 <th>Exp S1</th><th>Exp S2</th><th>Exp S3</th><th>Avg Speed</th>
                 <th>C1 S1→S2</th><th>C1 S2→S3</th><th>C1 Total</th>
                 <th>C2 S1→S2</th><th>C2 S2→S3</th><th>C2 Total</th>
                 <th>FullOpen</th><th>Slit</th><th>Exp Var</th><th>Action</th>
-            </tr></thead><tbody>`; // Adjusted Avg Hz to Avg Speed for consistency
+            </tr></thead><tbody>`;
             bucket.results.forEach(res => {
                  // Ensure all potentially missing keys have a default '---' display
-                const id = res.id !== undefined ? (res.id.startsWith('stage-') ? res.id.substring(6) : res.id) : '---';
                 const timestamp = res.timestamp !== undefined ? res.timestamp : '---';
                 const mode = res.mode !== undefined ? res.mode : '---';
                 const exp_s1_ms = res.exp_s1_ms !== undefined ? res.exp_s1_ms : '---';
@@ -539,7 +813,6 @@ function renderSavedBuckets() {
                 // Note: Displaying instant avg_hz, not the bucket's avg_hz here
                 const avg_hz = res.avg_hz !== undefined ? res.avg_hz : '---';
                 const c1_s1s2_ms = res.c1_s1s2_ms !== undefined ? res.c1_s1s2_ms : '---';
-                // CORRECTED TYPO: Use res.c1_s2s3_ms for c1_s2s3_ms
                 const c1_s2s3_ms = res.c1_s2s3_ms !== undefined ? res.c1_s2s3_ms : '---';
                 const c1_total_ms = res.c1_total_ms !== undefined ? res.c1_total_ms : '---';
                 const c2_s1s2_ms = res.c2_s1s2_ms !== undefined ? res.c2_s1s2_ms : '---';
@@ -551,7 +824,6 @@ function renderSavedBuckets() {
 
 
                 detailsTableHTML += `<tr>
-                    <td>${id}</td>
                     <td>${timestamp}</td>
                     <td>${mode}</td>
                     <td>${exp_s1_ms}</td>
@@ -580,7 +852,8 @@ function renderSavedBuckets() {
         bucketDiv.appendChild(expandedContentDiv);
         DOM.savedBucketsContainer.appendChild(bucketDiv);
     });
-    addDragListenersToBuckets();
+    addDragListenersToBuckets(); // Ensure listeners are re-added to existing buckets
+    addDragListenersToNewBucketDropZone(); // NEW: Add listener for new drop zone
 }
 
 function toggleBucketExpansion(bucketId) {
@@ -589,10 +862,10 @@ function toggleBucketExpansion(bucketId) {
 }
 
 function deleteBucket(bucketId) {
-    if (typeof window.showConfirmationModal !== 'function' || typeof window.updateSystemStatus !== 'function') { console.error("Delete bucket helpers not available."); return; }
+    if (typeof window.showPromptModal !== 'function' || typeof window.updateSystemStatus !== 'function') { console.error("Delete bucket helpers not available."); return; } // Changed showConfirmationModal to showPromptModal
     const bucket = window.resultBuckets.find(b => b.id === bucketId);
     if (!bucket) return;
-    showConfirmationModal(`Delete bucket "${bucket.name}" and all its ${bucket.results.length} measurements? This cannot be undone.`, (confirmed) => {
+    showPromptModal(`Delete bucket "${bucket.name}" and all its ${bucket.results.length} measurements? This cannot be undone.`, (confirmed) => {
         if (confirmed) {
             window.resultBuckets = window.resultBuckets.filter(b => b.id !== bucketId);
             renderSavedBuckets();
@@ -602,7 +875,8 @@ function deleteBucket(bucketId) {
 }
 
 function removeResultFromBucket(bucketId, resultId) {
-     if (typeof window.showConfirmationModal !== 'function' || typeof window.updateSystemStatus !== 'function') { console.error("Remove from bucket helpers not available."); return; }
+     // Removed confirmation prompt as requested
+     if (typeof updateSystemStatus !== 'function') { console.error("updateSystemStatus not available."); return; }
     const bucket = window.resultBuckets.find(b => b.id === bucketId);
     if (!bucket) return;
 
@@ -613,17 +887,13 @@ function removeResultFromBucket(bucketId, resultId) {
          return;
      }
 
-    showConfirmationModal(`Remove result ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId} from bucket "${bucket.name}"?`, (confirmed) => {
-        if (confirmed) {
-            // Remove the result using the found index
-            bucket.results.splice(resultIndex, 1);
+    // Remove the result using the found index
+    bucket.results.splice(resultIndex, 1);
 
-            calculateBucketAverages(bucket); // Recalculate averages after removal
-            renderSavedBuckets(); // Re-render to reflect changes
-            updateSystemStatus(`Result ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId} removed from bucket "${bucket.name}".`);
-             if (bucket.results.length === 0) updateSystemStatus(`Bucket "${bucket.name}" is now empty.`);
-        }
-    });
+    calculateBucketAverages(bucket); // Recalculate averages after removal
+    renderSavedBuckets(); // Re-render to reflect changes
+    updateSystemStatus(`Result ${resultId.startsWith('stage-') ? resultId.substring(6) : resultId} removed from bucket "${bucket.name}".`);
+     if (bucket.results.length === 0) updateSystemStatus(`Bucket "${bucket.name}" is now empty.`);
 }
 
 // This function populates the Bucket Deep Dive Tab table with averaged data
@@ -655,7 +925,7 @@ function viewBucketDeepDive(bucketId) {
 
     // Set average Exposure values
     setText('dd_exp_ms_s1', averages.exp_s1_ms);
-    setText('dd_exp_ms_s2', averages.exp_s2_ms);
+    setText('dd_exp_ms_s2', averages.exp_ms_s2);
     setText('dd_exp_ms_s3', averages.exp_s3_ms);
     // Set Overall Average Exposure
     setText('dd_exp_ms_avg', averages.overall_exp_ms); // Now using the calculated overall average
@@ -672,9 +942,9 @@ function viewBucketDeepDive(bucketId) {
     if (typeof window.calculateAndDisplayComparison === 'function') {
          // Exposure Comparisons
          calculateAndDisplayComparison(averages.exp_s1_ms, averages.exp_s2_ms, 'dd_exp_compare_s1s2');
-         calculateAndDisplayComparison(averages.exp_s2_ms, averages.exp_s3_ms, 'dd_exp_compare_s2s3');
+         calculateAndDisplayComparison(averages.exp_ms_s2, averages.exp_s3_ms, 'dd_exp_compare_s2s3');
 
-         // Curtain Travel Comparisons
+         // Curtain travel comparisons
          // Intra-curtain (Segment vs Segment within the same curtain)
          calculateAndDisplayComparison(averages.c1_s1s2_ms, averages.c1_s2s3_ms, 'dd_ct_c1_intra_pct_var');
          calculateAndDisplayComparison(averages.c2_s1s2_ms, averages.c2_s2s3_ms, 'dd_ct_c2_intra_pct_var');
@@ -693,7 +963,7 @@ function viewBucketDeepDive(bucketId) {
           setText('dd_ct_c1_intra_pct_var', !isNaN(bucket.comparisonAverages.ct_c1_intra_pct) ? `${bucket.comparisonAverages.ct_c1_intra_pct}%` : '---');
           setText('dd_ct_c2_intra_pct_var', !isNaN(bucket.comparisonAverages.ct_c2_intra_pct) ? `${bucket.comparisonAverages.ct_c2_intra_pct}%` : '---');
           setText('dd_ct_c1c2_s1s2_compare_pct', !isNaN(bucket.comparisonAverages.ct_c1c2_s1s2_pct) ? `${bucket.comparisonAverages.ct_c1c2_s1s2_pct}%` : '---');
-          setText('dd_ct_c1c2_s2s3_compare_pct', !isNaN(bucket.comparisonAverages.ct_c1c2_s2s3_pct) ? `${bucket.comparisonAverages.ct_c1c2_s2s3_pct}%` : '---');
+          setText('dd_ct_c1c2_s2s3_compare_pct', !isNaN(bucket.comparisonAverages.ct_c2_s2s3_pct) ? `${bucket.comparisonAverages.ct_c2_s2s3_pct}%` : '---');
          setText('dd_ct_c1c2_total_compare_pct', !isNaN(bucket.comparisonAverages.ct_c1c2_total_pct) ? `${bucket.comparisonAverages.ct_c1c2_total_pct}%` : '---');
     }
 
@@ -710,7 +980,24 @@ function viewBucketDeepDive(bucketId) {
 
     // Full open, slit width, and exposure variation averages
     setText('dd_open_time_duration_ms', averages.full_open_duration_ms);
-    setText('dd_slit_width_mm', averages.slit_mm);
+
+    // NEW LOGIC FOR dd_slit_width_mm
+    if (DOM.dd_slit_width_mm) {
+        const avgFullOpenMsText = averages.full_open_duration_ms;
+        // Parse the average full open duration string to a number
+        const avgFullOpenMs = parseFloat(getText(null, avgFullOpenMsText)); // Use getText to strip ' ms' and parse
+
+        // If the average full open duration is positive, it means the bucket predominantly represents full open measurements
+        if (!isNaN(avgFullOpenMs) && avgFullOpenMs > 0) {
+            DOM.dd_slit_width_mm.textContent = `N/A (Avg. Full Open)`;
+            DOM.dd_slit_width_mm.title = `Slit width not applicable when shutter was on average fully open for ${avgFullOpenMs.toFixed(3)} ms`;
+        } else {
+            // Otherwise, display the calculated average slit width or '---' if not applicable
+            setText('dd_slit_width_mm', averages.slit_mm);
+            DOM.dd_slit_width_mm.title = ''; // Clear title
+        }
+    }
+
     setText('dd_exp_var_pct', averages.exp_var_pct); // This is the average of the individual Exp Var calcs
 
     // Activate the deep dive tab
@@ -718,25 +1005,6 @@ function viewBucketDeepDive(bucketId) {
     updateSystemStatus(`Viewing deep dive for bucket "${bucket.name}".`);
 }
 
-let draggedResultId = null;
-function addDragListenersToStagingRows() {
-    // Ensure resultsLogTableBody exists before trying to add listeners
-    if (!DOM.resultsLogTableBody) {
-         console.warn("DOM.resultsLogTableBody not found, cannot add drag listeners to staging rows.");
-         return;
-    }
-    // Attach listeners to tbody and use event delegation
-    // Remove existing listeners first to prevent duplicates
-    DOM.resultsLogTableBody.removeEventListener('dragstart', handleDragStart);
-    DOM.resultsLogTableBody.removeEventListener('dragend', handleDragEnd);
-    DOM.resultsLogTableBody.addEventListener('dragstart', handleDragStart);
-    DOM.resultsLogTableBody.addEventListener('dragend', handleDragEnd);
-
-     // Add draggable attribute to existing and future rows
-     DOM.resultsLogTableBody.querySelectorAll('.staging-row').forEach(row => {
-         row.draggable = true;
-     });
-}
 function addDragListenersToBuckets() {
      // Ensure savedBucketsContainer exists before trying to add listeners
      if (!DOM.savedBucketsContainer) {
@@ -744,109 +1012,17 @@ function addDragListenersToBuckets() {
          return;
      }
     document.querySelectorAll('.bucket-item').forEach(bucketDiv => {
-        // The drop zone is typically the header
-        const dropZone = bucketDiv.querySelector('.bucket-header');
-        if (!dropZone) return; // Must have a header to be a drop target
+        // The drop zone is now the entire bucket-item
+        const dropZone = bucketDiv;
 
         // Remove existing listeners to prevent duplicates if renderSavedBuckets is called multiple times
-        dropZone.removeEventListener('dragover', handleDragOver);
-        dropZone.removeEventListener('dragleave', handleDragLeave);
-        dropZone.removeEventListener('drop', handleDrop);
+        dropZone.removeEventListener('dragover', handleDragOverBucket); // Specific handler for existing buckets
+        dropZone.removeEventListener('dragleave', handleDragLeaveBucket); // Specific handler for existing buckets
+        dropZone.removeEventListener('drop', handleDropBucket); // Specific handler for existing buckets
 
         // Add new listeners
-        dropZone.addEventListener('dragover', handleDragOver);
-        dropZone.addEventListener('dragleave', handleDragLeave);
-        dropZone.addEventListener('drop', handleDrop);
+        dropZone.addEventListener('dragover', handleDragOverBucket);
+        dropZone.addEventListener('dragleave', handleDragLeaveBucket);
+        dropZone.addEventListener('drop', handleDropBucket);
     });
-}
-function handleDragStart(event) {
-    // Use event delegation: check if the actual target is a staging-row
-    const targetRow = event.target.closest('.staging-row');
-    if (!targetRow) return;
-
-    draggedResultId = targetRow.dataset.resultId;
-    event.target.classList.add('dragging');
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', draggedResultId);
-    // Optionally set a drag image
-    // event.dataTransfer.setDragImage(event.target, 0, 0);
-
-    if (typeof window.updateSystemStatus === 'function') updateSystemStatus(`Dragging result: ${draggedResultId.startsWith('stage-') ? draggedResultId.substring(6) : draggedResultId}`);
-    else console.log(`Dragging result: ${draggedResultId}`);
-}
-function handleDragEnd(event) {
-     // Use event delegation: check if the actual target was a staging-row
-     const targetRow = event.target.closest('.staging-row');
-     if (!targetRow) return;
-
-    targetRow.classList.remove('dragging');
-    draggedResultId = null; // Reset dragged state regardless of drop success
-
-    // Remove drag-over class from all headers that might have it
-    document.querySelectorAll('.bucket-item .bucket-header.drag-over').forEach(el => el.classList.remove('drag-over'));
-     if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Drag ended.");
-     else console.log("Drag ended.");
-}
-function handleDragOver(event) {
-    // Ensure the target is within a bucket header before allowing drop effects
-    const dropTargetHeader = event.target.closest('.bucket-header');
-    if (!dropTargetHeader) return; // Only allow drops on headers
-
-    event.preventDefault(); // Necessary to allow dropping
-    event.dataTransfer.dropEffect = 'move';
-
-    // Add drag-over class only to the specific header
-    dropTargetHeader.classList.add('drag-over');
-}
-function handleDragLeave(event) {
-    // Check if the element the cursor left is still within the header or bucket item
-    // Use event.target and event.relatedTarget with closest()
-    const currentTargetHeader = event.currentTarget.closest('.bucket-header'); // The element the listener is on
-    const relatedTargetHeader = event.relatedTarget ? event.relatedTarget.closest('.bucket-header') : null;
-
-    if (currentTargetHeader && currentTargetHeader !== relatedTargetHeader) {
-         // Cursor left the current header and did not enter another header directly
-         // Also check if relatedTarget is outside the whole bucket-item
-         const bucketItem = currentTargetHeader.closest('.bucket-item');
-         if (bucketItem && !bucketItem.contains(event.relatedTarget)) {
-             currentTargetHeader.classList.remove('drag-over');
-         }
-    }
-}
-function handleDrop(event) {
-    event.preventDefault();
-    const targetBucketElement = event.target.closest('.bucket-item');
-    // Remove drag-over class immediately on drop attempt
-    if (targetBucketElement) {
-        const header = targetBucketElement.querySelector('.bucket-header');
-        if(header) header.classList.remove('drag-over');
-    }
-
-    // Ensure drop occurred on a bucket item and we have a dragged ID
-    if (!targetBucketElement || !draggedResultId) {
-        console.error("Drop error: Missing target element or dragged result ID.");
-         if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error moving result: Drop target invalid.");
-        return;
-    }
-
-    const targetBucketId = targetBucketElement.dataset.bucketId;
-    const resultToMoveIndex = window.stagedResults.findIndex(r => r.id === draggedResultId);
-    const targetBucket = window.resultBuckets.find(b => b.id === targetBucketId);
-
-    if (resultToMoveIndex > -1 && targetBucket) {
-         const resultToMove = window.stagedResults[resultToMoveIndex];
-        // Add result to the beginning of the bucket's results array
-        targetBucket.results.unshift(JSON.parse(JSON.stringify(resultToMove))); // Deep copy
-        calculateBucketAverages(targetBucket); // Recalculate averages
-        // Remove result from staging using splice
-        window.stagedResults.splice(resultToMoveIndex, 1);
-        renderStagingTable();
-        renderSavedBuckets(); // Re-render buckets to show updated count/averages
-        if (typeof window.updateSystemStatus === 'function') updateSystemStatus(`Result ${draggedResultId.startsWith('stage-') ? draggedResultId.substring(6) : draggedResultId} moved to bucket "${targetBucket.name}".`);
-        else console.log(`Result ${draggedResultId} moved to bucket "${targetBucket.name}".`);
-    } else {
-        console.error("Drop error: Result or bucket not found.", { draggedResultId, targetBucketId, resultIndex: resultToMoveIndex, targetBucket: !!targetBucket });
-        if (typeof window.updateSystemStatus === 'function') updateSystemStatus("Error moving result: Result or bucket not found.");
-    }
-    // draggedResultId is already reset in handleDragEnd
 }

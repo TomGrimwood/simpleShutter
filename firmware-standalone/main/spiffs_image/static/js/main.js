@@ -1,9 +1,9 @@
-  // main.js - Main application entry point
+// main.js - Main application entry point
    // Depends on ui-helpers.js for DOM access, updateSystemStatus, initializeTabs, activateTab
    // Depends on config-panel.js for initializeConfigPanelInteraction
    // Depends on api.js for connectWebSocket, setEspMode, resetEspSystem, initializeApiHandlers, getWifiStatus
    // Depends on data-updater.js for updateShutterDisplay, updateEsp32Status, updateEspModeDisplay
-   // Depends on results-log.js for createBucket, clearStagingArea, renderStagingTable, renderSavedBuckets, addDragListenersToStagingRows, addDragListenersToBuckets
+   // Depends on results-log.js for createBucket, clearStagingArea, renderStagingTable, renderSavedBuckets, addDragListenersToStagingRows, addDragListenersToBuckets, addResultToStagingArea // ADDED addResultToStagingArea here
 
    // Global state (consider refactoring into a state object later)
    window.AppState = {
@@ -86,7 +86,7 @@
 
        if (window.AppState.lastReceivedData) {
            updateSystemStatus("Config/Unit change, re-rendering current data...");
-           updateShutterDisplay(window.AppState.lastReceivedData); // Re-process and display the last data
+           updateShutterDisplay(window.AppState.lastReceivedData, false); // MODIFIED: Pass false for isNewMeasurement
        } else {
            updateSystemStatus("No current data to re-render. Waiting for WebSocket connection and data.");
        }
@@ -190,14 +190,20 @@
                    // Check for errors in the data packet from the device
                    if (rawData.error) {
                        console.error("Device Error:", rawData.error);
-                        if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">DEVICE ERROR: ${rawData.error}</p>`;
+                        if (DOM.errorDisplay) {
+                            DOM.errorDisplay.innerHTML = `<p class="error-message">DEVICE ERROR: ${rawData.error}</p>`;
+                            DOM.errorDisplay.style.display = 'block'; // Ensure error display is visible
+                        }
                        updateSystemStatus("Device reported an error.");
                        // Don't process measurement data if there's a device error flag
+                       // However, we still need to update the display itself.
+                       if (typeof updateShutterDisplay === 'function') updateShutterDisplay(rawData, false); // MODIFIED: Pass false for isNewMeasurement
                    } else {
                         if (DOM.errorDisplay && !DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) {
                             DOM.errorDisplay.innerHTML = ''; // Clear device error display if a non-error packet comes
+                            DOM.errorDisplay.style.display = 'none'; // Hide if empty
                         }
-                       if (typeof updateShutterDisplay === 'function') updateShutterDisplay(rawData); // Process and display data
+                       if (typeof updateShutterDisplay === 'function') updateShutterDisplay(rawData, true); // MODIFIED: Pass true for isNewMeasurement
                         else console.error("updateShutterDisplay function not found.");
                    }
 
@@ -214,7 +220,10 @@
 
                } catch (e) {
                    console.error("WS message processing error:", e, "Received data:", jsonData);
-                    if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">CLIENT JSON PARSE ERROR:<br>${e.message}</p>`;
+                    if (DOM.errorDisplay) {
+                        DOM.errorDisplay.innerHTML = `<p class="error-message">CLIENT JSON PARSE ERROR:<br>${e.message}</p>`;
+                        DOM.errorDisplay.style.display = 'block'; // Ensure error display is visible
+                    }
                    updateSystemStatus("WS data error.");
                }
            },
@@ -222,7 +231,10 @@
                console.error("WebSocket error:", e);
                updateEsp32Status(false, "WS Error", Date.now()); // Only update WS status, not overall WiFi
                updateSystemStatus("WebSocket error.");
-                if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">WEBSOCKET ERROR: See console for details.</p>`;
+                if (DOM.errorDisplay) {
+                    DOM.errorDisplay.innerHTML = `<p class="error-message">WEBSOCKET ERROR: See console for details.</p>`;
+                    DOM.errorDisplay.style.display = 'block'; // Ensure error display is visible
+                }
            },
            onClose: (e) => {
                console.log("WebSocket closed.", e);

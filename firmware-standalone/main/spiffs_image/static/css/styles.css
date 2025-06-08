@@ -271,11 +271,21 @@ table tbody tr:nth-child(even) td { background-color: #25253A; } /* Slightly dif
 /* --- Shutter Data Table Specifics (#shutterDataTable, #bucketDeepDiveTable) --- */
 #shutterDataTable, #bucketDeepDiveTable { table-layout: fixed; }
 
-#shutterDataTable th:nth-child(1), #shutterDataTable td:nth-child(1),
-#bucketDeepDiveTable th:nth-child(1), #bucketDeepDiveTable td:nth-child(1) { width: 25%; }
+/* ADJUSTED COLUMN WIDTHS FOR DEEP DIVE & LOG TABLES AFTER # COLUMN REMOVAL */
+#resultsLogTable th:first-child, #resultsLogTable td:first-child,
+#bucketDeepDiveTable th:first-child, #bucketDeepDiveTable td:first-child { width: 10%; } /* Time column */
+#resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2),
+#bucketDeepDiveTable th:nth-child(2), #bucketDeepDiveTable td:nth-child(2) { width: 8%; } /* Mode column */
+#resultsLogTable th:last-child, #resultsLogTable td:last-child,
+#bucketDeepDiveTable th:last-child, #bucketDeepDiveTable td:last-child { width: 8%; } /* Action column */
+#resultsLogTable th:nth-child(n+3):not(:last-child),
+#resultsLogTable td:nth-child(n+3):not(:last-child),
+#bucketDeepDiveTable th:nth-child(n+3):not(:last-child),
+#bucketDeepDiveTable td:nth-child(n+3):not(:last-child) { text-align: right; font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; }
 
-#shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2),
-#bucketDeepDiveTable th:nth-child(n+2), #bucketDeepDiveTable td:nth-child(n+2) { width: 12.5%; }
+
+#shutterDataTable th:nth-child(1), #shutterDataTable td:nth-child(1) { width: 25%; } /* This is correct for main table */
+#shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2) { width: 12.5%; } /* This is correct for main table */
 
 #shutterDataTable th:first-child, #shutterDataTable td.metric-label,
 #bucketDeepDiveTable th:first-child, #bucketDeepDiveTable td.metric-label {
@@ -381,12 +391,12 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
 
 /* --- Results Log Tab & Bucket Specifics --- */
 #resultsLogTable th, #resultsLogTable td { padding: 8px 12px; font-size: 13px; }
-#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%; text-align: center;}
-#resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2) { width: 10%; text-align: center;}
-#resultsLogTable th:nth-child(3), #resultsLogTable td:nth-child(3) { width: 8%; text-align: center;}
-#resultsLogTable th:last-child, #resultsLogTable td:last-child { width: 8%; text-align: center;}
-#resultsLogTable th:nth-child(n+4):not(:last-child),
-#resultsLogTable td:nth-child(n+4):not(:last-child) { text-align: right; font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; }
+/* #resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%; text-align: center;} REMOVED # COLUMN*/
+/* #resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2) { width: 10%; text-align: center;} REMOVED # COLUMN*/
+/* #resultsLogTable th:nth-child(3), #resultsLogTable td:nth-child(3) { width: 8%; text-align: center;} REMOVED # COLUMN*/
+/* #resultsLogTable th:last-child, #resultsLogTable td:last-child { width: 8%; text-align: center;} REMOVED # COLUMN*/
+/* #resultsLogTable th:nth-child(n+4):not(:last-child), REMOVED # COLUMN*/
+/* #resultsLogTable td:nth-child(n+4):not(:last-child) { text-align: right; font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; } REMOVED # COLUMN*/
 
 .action-button {
     background: linear-gradient(180deg, #5A5A70, #4A4A60);
@@ -503,10 +513,15 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
 .bucket-item.expanded .bucket-expanded-content { display: block; }
 .bucket-details-table { margin-top: 10px !important; }
 .bucket-details-table th, .bucket-details-table td { font-size: 12px; padding: 6px 8px; }
-.bucket-details-table th:last-child, .bucket-details-table td:last-child { width: 10%; }
+/* ADJUSTED COLUMN WIDTHS FOR DEEP DIVE & LOG TABLES AFTER # COLUMN REMOVAL */
+.bucket-details-table th:last-child, .bucket-details-table td:last-child { width: 10%; } /* Action column */
+.bucket-details-table th:first-child, .bucket-details-table td:first-child { width: 10%; } /* Time column */
+.bucket-details-table th:nth-child(2), .bucket-details-table td:nth-child(2) { width: 8%; } /* Mode column */
+
 
 .staging-row.dragging { opacity: 0.6; background-color: #4A4A60; transform: scale(0.98); }
-.bucket-item.drag-over .bucket-header { border: 2px dashed #9BBFFF; background-color: #384060; }
+/* .bucket-item.drag-over .bucket-header { border: 2px dashed #9BBFFF; background-color: #384060; } */ /* Old: Targeted header */
+.bucket-item.drag-over { border: 2px dashed #9BBFFF; background-color: #384060; } /* New: Target whole item */
 
 
 /* New style for the IP note */
@@ -528,6 +543,33 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
     border: none; /* Remove border */
     padding: 0; /* Remove padding */
 }
+
+/* NEW: Styles for the new bucket drop zone */
+.new-bucket-drop-zone {
+    margin: 25px 0; /* Spacing above and below */
+    padding: 20px;
+    border: 2px dashed #404050; /* Dashed border to indicate drop zone */
+    border-radius: 8px;
+    text-align: center;
+    color: #C0C0D0;
+    font-size: 1.2em;
+    font-weight: 500;
+    background-color: #2A2A40; /* Slightly darker than main content */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px; /* Minimum height for visibility */
+}
+
+.new-bucket-drop-zone.drag-over {
+    background-color: #384060; /* Highlight on drag over */
+    border-color: #9BBFFF; /* Accent color border */
+    box-shadow: inset 0 2px 8px rgba(122,155,255,0.4), 0 0 10px rgba(122,155,255,0.2);
+    transform: scale(1.01); /* Slight grow effect */
+}
+
 
 @media (max-width: 1024px) {
     .page-container { margin: 15px; max-width: unset; } /* Removed max-width */
@@ -575,6 +617,7 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
     .bucket-actions button { font-size: 11px; padding: 4px 8px;}
     #savedBucketsContainer { grid-template-columns: 1fr; gap: 15px; margin-top: 20px;}
     .bucket-summary-averages { grid-template-columns: repeat(2, 1fr); } /* Adjust for smaller screens */
+    .new-bucket-drop-zone { margin: 15px 0; padding: 15px; font-size: 1.1em; min-height: 60px; }
 }
 @media (max-width: 480px) {
     table th, table td { font-size: 0.8em; padding: 6px; }
@@ -582,6 +625,7 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
     .config-panel { font-size: 13px; }
     .config-panel input, .config-panel select, .config-panel .data-value { font-size: 13px; }
     .bucket-summary-averages { grid-template-columns: 1fr; } /* 1 column on very small */
+    .new-bucket-drop-zone { font-size: 1em; min-height: 50px; }
 }
 
 /* Modern Scrollbar Styling */

@@ -2,4 +2,34 @@
     "idf.monitorPort": "COM4",
     "idf.flashType": "UART",
     "idf.portWin": "COM4",
+
+
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    // IMPORTANT: Tell ESLint where your package.json and .eslintrc.js are
+    "eslint.workingDirectories": [
+        "./main" // Point to the 'main' directory using forward slashes
+    ],
+    // Disable VS Code's built-in JavaScript validation and formatting to avoid conflicts
+    "javascript.validate.enable": false,
+    "javascript.format.enable": false,
+    "typescript.validate.enable": true, // Keep this enabled for JSDoc type checking
+    "typescript.format.enable": false, // Let Prettier handle formatting
+    // Use the workspace version of TypeScript
+    "typescript.tsdk": "main/node_modules/typescript/lib", // Use forward slashes
+    "typescript.enablePromptUseWorkspaceTsdk": true
 }

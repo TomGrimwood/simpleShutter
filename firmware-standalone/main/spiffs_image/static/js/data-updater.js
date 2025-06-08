@@ -1,3 +1,4 @@
+// main\spiffs_image\static\js\data-updater.js
 // data-updater.js
 // Depends on ui-helpers.js for DOM access, setText, formatRawTimestamp, updateSystemStatus
 // Depends on config-panel.js for getCurrentTimeScalingFactor
@@ -32,7 +33,8 @@ function setRowVisibilityByCellId(cellId, visible) {
 }
 
 
-function updateShutterDisplay(rawData) {
+// MODIFIED: Added isNewMeasurement parameter
+function updateShutterDisplay(rawData, isNewMeasurement = false) {
     if (!rawData || typeof rawData.mode === 'undefined') {
         console.error("updateShutterDisplay: Invalid or missing rawData from ESP32.");
         // Ensure error display is visible
@@ -46,7 +48,7 @@ function updateShutterDisplay(rawData) {
     // Ensure necessary UI helper functions and DOM elements are available
     // Reduced the number of checks here as the core issue was element retrieval in getConfigValue/setRowVisibility
     if (typeof setText !== 'function' || typeof formatRawTimestamp !== 'function' || typeof updateSystemStatus !== 'function' ||
-        typeof calculateAndDisplayComparison !== 'function' || typeof addResultToStagingArea !== 'function' || typeof getCurrentTimeScalingFactor !== 'function' ||
+        typeof calculateAndDisplayComparison !== 'function' || /* Removed addResultToStagingArea from this check */ typeof getCurrentTimeScalingFactor !== 'function' ||
         !DOM.timestampUnitSelector || !DOM.errorDisplay || !DOM.sensorModeSelector) {
         console.error("Data updater initialization failed: Missing core helper functions or critical DOM elements.");
         if (DOM.errorDisplay) {
@@ -105,6 +107,9 @@ function updateShutterDisplay(rawData) {
     const s2_o_us = rawData.s2_open_us ?? null, s2_c_us = rawData.s2_close_us ?? null;
     const s3_o_us = rawData.s3_open_us ?? null, s3_c_us = rawData.s3_close_us ?? null;
     const selectedUnit = DOM.timestampUnitSelector.value;
+
+    // ADDED: Initialize frameHeightMm from configuration
+    const frameHeightMm = getConfigValue('calibrationTargetDistanceConfig', null);
 
     // Ensure raw timestamp elements exist
     if (DOM.raw_s1) setText('raw_s1', formatRawTimestamp(s1_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s1_c_us, selectedUnit));
@@ -179,12 +184,15 @@ function updateShutterDisplay(rawData) {
     } else { if(DOM.ct_c1c2_s1s2_compare_pct) setText('ct_c1c2_s1s2_compare_pct', '---'); if(DOM.ct_c1c2_s2s3_compare_pct) setText('ct_c1c2_s2s3_compare_pct', '---'); }
     if(DOM.ct_c1c2_total_compare_pct) if(showTotalTravel) calculateAndDisplayComparison(c1s1s3t, c2s1s3t, 'ct_c1c2_total_compare_pct'); else setText('ct_c1c2_total_compare_pct', '---');
 
-    const frameHeightMm = getConfigValue('calibrationTargetDistanceConfig', null);
     let fullOpenDurMs = null;
+    let isFullOpenMode = false; // <<< NEW FLAG
     // Calculate full open duration: Exposure - Curtain Travel (total)
     // This requires both average exposure and total curtain travel
     if (avgExpMs != null && c1s1s3t != null && c1s1s3t > 0) {
         fullOpenDurMs = Math.max(0, avgExpMs - c1s1s3t);
+        if (fullOpenDurMs > 0) { // If it's a positive duration, it's considered "full open"
+            isFullOpenMode = true; // <<< SET FLAG
+        }
     } else if (avgExpMs == null && (showS1||showS2||showS3)) { // Don't error if no sensors are active
          const expErrors = errors.filter(e => e.includes("Exp")).length;
          if (expErrors === 0) errors.push("Full Open: Avg Exp unavailable.");
@@ -196,7 +204,7 @@ function updateShutterDisplay(rawData) {
 
 
     // Calculate effective slit width: Frame Height / Total Curtain Travel * Exposure Time (average)
-    let effSlitMm = null;
+    let effSlitMm = null; // Will only be set if not in full open mode and no other errors
     if (frameHeightMm == null || frameHeightMm <= 0) {
         const frameHeightErrors = errors.filter(e => e.includes("Frame Height")).length;
         if(frameHeightErrors === 0) errors.push("Slit: Frame Height invalid (Config)."); // Add specific note about config
@@ -207,26 +215,36 @@ function updateShutterDisplay(rawData) {
         const c1TotalErrors = errors.filter(e => e.includes("C1 Total")).length;
         if(showTotalTravel && avgExpMs > 0 && c1TotalErrors === 0) errors.push("Slit: C1 Total Travel invalid or not detected.");
     }
-    else {
-        // If Full Open Duration is 0 or less (slit scan), calculate based on travel speed and exposure
-         const currentFullOpenDur = Math.max(0, avgExpMs - c1s1s3t);
-         if (currentFullOpenDur > 0) {
-             // Slit is fully open. Indicate this instead of a slit width.
-             // PUSH THIS MESSAGE TO WARNINGS, NOT ERRORS
-             if (avgExpMs > 0 && c1s1s3t > 0) warnings.push(`Slit: Full open (${currentFullOpenDur.toFixed(3)} ms), slit width calculation not standard.`); // Adjusted message goes here
-         } else {
-              // Slit scan
-             if (c1s1s3t > 0) { // Ensure travel time is valid and positive
-                 effSlitMm = (frameHeightMm / c1s1s3t) * avgExpMs;
-                 if (!isFinite(effSlitMm) || effSlitMm < 0) { effSlitMm = null; errors.push("Slit: Calculated slit width invalid."); }
-             } else {
-                  // Travel time is invalid, cannot calculate slit width
-                   const c1TotalErrors = errors.filter(e => e.includes("C1 Total")).length;
-                   if(c1TotalErrors === 0) errors.push("Slit: C1 Total Travel invalid or not detected.");
-             }
-         }
+    // NEW LOGIC FOR SLIT WIDTH CALCULATION / DISPLAY
+    else { // All necessary inputs for calculation (frameHeight, avgExp, c1s1s3t) seem valid
+        if (isFullOpenMode) {
+            // If already determined as 'Full Open', effSlitMm remains null.
+            // REMOVED: warnings.push(`Slit: Full open (${currentFullOpenDurForSlitCheck.toFixed(3)} ms), slit width calculation not standard.`);
+        } else {
+             // Slit scan: calculate effSlitMm
+             effSlitMm = (frameHeightMm / c1s1s3t) * avgExpMs;
+             if (!isFinite(effSlitMm) || effSlitMm < 0) { effSlitMm = null; errors.push("Slit: Calculated slit width invalid."); }
+        }
     }
-    if (DOM.slit_width_mm) setText('slit_width_mm', showTotalTravel ? effSlitMm : null, 2, (isFinite(effSlitMm) ? ' mm':''));
+
+    // This section directly sets the text content for the slit_width_mm DOM element
+    if (DOM.slit_width_mm) {
+        if (showTotalTravel) { // Only attempt to display if in a mode that supports total travel
+            if (isFullOpenMode) {
+                // If it's full open, display 'N/A (Full Open)'
+                DOM.slit_width_mm.textContent = `N/A (Full Open)`;
+                DOM.slit_width_mm.title = `Slit width not applicable when shutter is fully open for ${fullOpenDurMs.toFixed(3)} ms`;
+            } else {
+                // Otherwise, use setText helper for actual calculated value or '---' from errors
+                setText('slit_width_mm', effSlitMm, 2, ' mm');
+                DOM.slit_width_mm.title = ''; // Clear title if it was N/A
+            }
+        } else {
+            // If not in a mode that shows total travel, set to '---' and clear title
+            setText('slit_width_mm', null);
+            DOM.slit_width_mm.title = '';
+        }
+    }
 
 
     // Calculate exposure variation percentage
@@ -272,39 +290,43 @@ function updateShutterDisplay(rawData) {
     }
 
 
-    // Add result to staging area ONLY IF there are NO critical calculation errors
-    // A "full open" warning should NOT prevent adding to staging
+    // MODIFIED: Only add result to staging area if isNewMeasurement is true AND NO critical calculation errors
     const hasMeasurementData = (showS1 && (s1_o_us != null && s1_o_us > 0)) ||
                                (showS2 && (s2_o_us != null && s2_o_us > 0)) ||
                                (showS3 && (s3_o_us != null && s3_o_us > 0));
 
-    if (typeof addResultToStagingArea === 'function' && hasMeasurementData && errors.length === 0) {
+    if (isNewMeasurement && typeof addResultToStagingArea === 'function' && hasMeasurementData && errors.length === 0) {
         addResultToStagingArea();
-    } else if (errors.length > 0) {
+        console.log("New measurement received with no errors, added to staging.");
+    } else if (isNewMeasurement && errors.length > 0) {
         // Don't add to staging if there were calculation errors, but log if data existed
          if (hasMeasurementData) {
-            console.warn("Data received but client calculation errors occurred. Not adding to staging.", errors);
-            // Optional: Log the raw data with errors somewhere else if needed
+            console.warn("New measurement received but client calculation errors occurred. Not adding to staging.", errors);
          } else {
-             // This case should mostly be caught earlier by hasMeasurementData check,
-             // but keep for robustness if errors were pushed without data
-             console.warn("Data packet received but contained no valid timestamps or had device errors.", rawData);
+             console.warn("New measurement packet received but contained no valid timestamps or had device errors (isNewMeasurement).", rawData);
          }
-    } else if (warnings.length > 0) {
-         // Data had warnings but no errors, and had measurement data
+    } else if (isNewMeasurement && warnings.length > 0) {
+         // Data had warnings but no errors, and had measurement data - ADD TO STAGING for new measurements
          if (hasMeasurementData) {
-              console.log("Data received with warnings, added to staging.", warnings);
-               addResultToStagingArea(); // ADD TO STAGING EVEN WITH WARNINGS
+              console.log("New measurement received with warnings, added to staging.", warnings);
+              addResultToStagingArea();
          } else {
-              console.warn("Data packet received with warnings but no valid timestamps.", rawData, warnings);
+              console.warn("New measurement packet received with warnings but no valid timestamps (isNewMeasurement).", rawData, warnings);
          }
-    } else if (hasMeasurementData) {
-         // Data had no errors or warnings, and had measurement data - add to staging
-         console.log("Data received with no errors or warnings, added to staging.");
-          addResultToStagingArea(); // ADD TO STAGING if data is valid and no errors/warnings
+    } else if (isNewMeasurement && hasMeasurementData) {
+         // Fallback for new measurement with no errors or warnings but valid data - add to staging
+         console.log("New measurement received with no errors or warnings, added to staging.");
+         addResultToStagingArea();
+    } else if (!isNewMeasurement) {
+        // This is a re-render due to config change, etc. Don't add to staging.
+        updateSystemStatus("Display updated based on config change.");
+        // We can optionally clear out the "Data received" status if it was from a new measurement
+        // so it doesn't seem like new data came in.
+        // updateSystemStatus is called later by main.js if it's new data.
+        // For re-renders, it's already called "Config/Unit change, re-rendering current data..."
     } else {
-         // Data packet received but contained no valid timestamps (e.g., all 0s)
-         console.warn("Data packet received but contained no valid timestamps or had device errors.", rawData);
+        // This case should mostly be caught by the above checks, but for robustness
+        console.warn("Data packet received but contained no valid timestamps or had device errors (not added to staging).", rawData);
     }
 }
 

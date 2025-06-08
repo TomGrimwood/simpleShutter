@@ -74,11 +74,13 @@
        stagingCount: document.getElementById('stagingCount'),
        clearStagingButton: document.getElementById('clearStagingButton'),
        savedBucketsContainer: document.getElementById('savedBucketsContainer'),
+       newBucketDropZone: document.getElementById('newBucketDropZone'), // NEW: Add this element
 
        // Confirmation Modal elements
        modalMessageText: document.getElementById('modalMessageText'),
        modalConfirmButton: document.getElementById('modalConfirmButton'),
        modalCancelButton: document.getElementById('modalCancelButton'),
+       bucketNameInputModal: document.getElementById('bucketNameInputModal'), // Added to DOM object
 
        // Bucket Deep Dive Tab elements
        bucketDeepDiveTabContent: document.getElementById('bucketDeepDiveTabContent'), // Need this for the check in main.js
@@ -180,19 +182,68 @@
    // Exporting updateSystemStatus
    window.updateSystemStatus = updateSystemStatus;
 
-   let confirmCallback = null;
-   function showConfirmationModal(message, callback) {
+   let modalResolve = null; // Renamed to avoid confusion with `modalConfirmResolve` in results-log.js
+   /**
+    * Shows a modal dialog for confirmation or prompting for input.
+    * @param {string} message The message to display.
+    * @param {Function|null} callback Callback function, receives `true` or `false` for confirmation, or input string/null for prompt.
+    *                                 Set to `null` if you only intend to use the Promise return.
+    * @param {object|null} inputConfig Optional. If provided, turns the modal into an input prompt.
+    *   {
+    *     placeholder: string,
+    *     defaultValue: string,
+    *     confirmText: string,
+    *     cancelText: string
+    *   }
+    * @returns {Promise<string|boolean|null>} Resolves with the input string (if prompt and confirmed), `true` (if confirmation and confirmed), or `null` (if cancelled).
+    */
+   function showPromptModal(message, callback = null, inputConfig = null) { // FIX: Make callback optional
        DOM.modalMessageText.textContent = message;
-       confirmCallback = callback;
-       DOM.confirmationModal.style.display = 'flex';
+       DOM.bucketNameInputModal.value = ''; // Clear previous input
+       DOM.bucketNameInputModal.style.display = 'none'; // Hide by default
+
+       if (inputConfig) {
+           DOM.bucketNameInputModal.style.display = 'block';
+           DOM.bucketNameInputModal.placeholder = inputConfig.placeholder || '';
+           if (inputConfig.defaultValue) DOM.bucketNameInputModal.value = inputConfig.defaultValue;
+           DOM.modalConfirmButton.textContent = inputConfig.confirmText || 'OK';
+           DOM.modalCancelButton.textContent = inputConfig.cancelText || 'Cancel';
+       } else {
+           // Reset for simple confirmation
+           DOM.modalConfirmButton.textContent = 'Confirm';
+           DOM.modalCancelButton.textContent = 'Cancel';
+       }
+       
+       return new Promise((resolve) => {
+           modalResolve = (confirmed) => {
+               DOM.confirmationModal.style.display = 'none';
+               let returnValue;
+               if (inputConfig) {
+                   returnValue = confirmed ? DOM.bucketNameInputModal.value : null; // Return null if cancelled for prompt
+               } else {
+                   returnValue = confirmed; // Return boolean for confirmation
+               }
+               
+               // FIX: Only call callback if it's a function
+               if (typeof callback === 'function') {
+                   callback(returnValue); 
+               }
+
+               resolve(returnValue);  // Resolve the promise
+               modalResolve = null; // Clear resolver
+           };
+           DOM.confirmationModal.style.display = 'flex';
+           if (inputConfig) DOM.bucketNameInputModal.focus(); // Focus on input if present
+       });
    }
+
    DOM.modalConfirmButton?.addEventListener('click', () => {
-       if (confirmCallback) confirmCallback(true);
-       DOM.confirmationModal.style.display = 'none';
-       confirmCallback = null;
+       if (modalResolve) modalResolve(true);
    });
    DOM.modalCancelButton?.addEventListener('click', () => {
-       if (confirmCallback) confirmCallback(false);
-       DOM.confirmationModal.style.display = 'none';
-       confirmCallback = null;
+       if (modalResolve) modalResolve(false);
    });
+
+   // Exporting showPromptModal (renamed from showConfirmationModal)
+   window.showConfirmationModal = showPromptModal; // Keep alias for backward compatibility (where only confirmation is used)
+   window.showPromptModal = showPromptModal; // New name for input-enabled modal

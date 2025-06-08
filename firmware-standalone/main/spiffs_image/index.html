@@ -209,7 +209,7 @@
                 <caption>Staging Area: Recent Unbucketed Results (<span id="stagingCount">0</span>)</caption>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <!-- <th>#</th> REMOVED # COLUMN -->
                         <th>Time</th>
                         <th>Mode</th>
                         <th>Exp S1 (ms)</th>
@@ -230,6 +230,12 @@
             <div style="text-align: center; margin-top: 10px;">
                 <button id="clearStagingButton" class="action-button danger" title="Clear all entries from the staging area">Clear Staging Area</button>
             </div>
+
+            <!-- NEW DROP ZONE -->
+            <div id="newBucketDropZone" class="new-bucket-drop-zone">
+                Drop here to create new bucket
+            </div>
+            <!-- END NEW DROP ZONE -->
 
             <div id="savedBucketsContainer">
                 </div>
@@ -326,6 +332,7 @@
 <div id="confirmationModal" class="modal-overlay">
     <div class="modal-content">
         <p id="modalMessageText">Are you sure?</p>
+        <input type="text" id="bucketNameInputModal" placeholder="Enter bucket name..." style="display: none;"> <!-- Hidden by default -->
         <div class="modal-buttons">
             <button id="modalConfirmButton" class="action-button danger">Confirm</button>
             <button id="modalCancelButton" class="action-button">Cancel</button>
