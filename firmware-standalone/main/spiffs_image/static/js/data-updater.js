@@ -15,7 +15,7 @@ function getConfigValue(id, defaultValue) {
     // Only log a warning if the element is genuinely not found,
     // not just because DOM wasn't fully ready when DOM object was built.
     // This warning might still fire if the ID is wrong or the element is truly missing.
-    // console.warn(`Config element ${id} not found.`);
+    // console.warn(`Config element ${id} not found.`); // Keep this commented unless needed for debugging missing elements
     return defaultValue;
 }
 
@@ -86,9 +86,12 @@ function updateShutterDisplay(rawData) {
     setRowVisibilityByCellId('raw_s3', showS3);
 
     // Clear previous errors if data is valid
-    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) DOM.errorDisplay.innerHTML = '';
+    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) DOM.errorDisplay.innerHTML = ''; // Keep client calc errors
+    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("DEVICE ERROR")) DOM.errorDisplay.innerHTML = DOM.errorDisplay.innerHTML.replace(/<p class="error-message">DEVICE ERROR.*?<\/p>/, ''); // Clear device errors
 
     const errors = [];
+    const warnings = []; // <<< Added warnings array
+
     const timeScalingFactor = getCurrentTimeScalingFactor();
     const s1_o_us = rawData.s1_open_us ?? null, s1_c_us = rawData.s1_close_us ?? null;
     const s2_o_us = rawData.s2_open_us ?? null, s2_c_us = rawData.s2_close_us ?? null;
@@ -103,7 +106,7 @@ function updateShutterDisplay(rawData) {
 
     const getExposureUs = (o, c) => (o != null && c != null && o > 0 && c > o) ? (c - o) : 0;
     let exp_us_s1 = 0, exp_us_s2 = 0, exp_us_s3 = 0;
-    if (showS1) { exp_us_s1 = getExposureUs(s1_o_us, s1_c_us); if (s1_o_us > 0 && s1_c_us > 0 && s1_c_us <= s1_o_us) errors.push("S1: Close before/at open.");} // Removed != check, 0 is also a close before/at open state for non-zero open
+    if (showS1) { exp_us_s1 = getExposureUs(s1_o_us, s1_c_us); if (s1_o_us > 0 && s1_c_us > 0 && s1_c_us <= s1_o_us) errors.push("S1: Close before/at open.");}
     if (showS2) { exp_us_s2 = getExposureUs(s2_o_us, s2_c_us); if (s2_o_us > 0 && s2_c_us > 0 && s2_c_us <= s2_o_us) errors.push("S2: Close before/at open.");}
     if (showS3) { exp_us_s3 = getExposureUs(s3_o_us, s3_c_us); if (s3_o_us > 0 && s3_c_us > 0 && s3_c_us <= s3_o_us) errors.push("S3: Close before/at open.");}
 
@@ -203,7 +206,8 @@ function updateShutterDisplay(rawData) {
              // Slit is fully open. Indicate this instead of a slit width.
              // Maybe display "Full Frame" or similar? For now, setting to null.
              effSlitMm = null;
-             if (avgExpMs > 0 && c1s1s3t > 0) errors.push(`Slit: Full open (${currentFullOpenDur.toFixed(3)} ms), slit width calculation not standard.`); // Adjusted error message
+             // PUSH THIS MESSAGE TO WARNINGS, NOT ERRORS
+             if (avgExpMs > 0 && c1s1s3t > 0) warnings.push(`Slit: Full open (${currentFullOpenDur.toFixed(3)} ms), slit width calculation not standard.`); // Adjusted message goes here
          } else {
               // Slit scan
              if (c1s1s3t > 0) { // Ensure travel time is valid and positive
@@ -241,21 +245,25 @@ function updateShutterDisplay(rawData) {
     }
 
 
-    // Display errors
+    // Display errors and warnings
     if (DOM.errorDisplay) {
+        let message = '';
         if (errors.length > 0) {
-             DOM.errorDisplay.innerHTML = '<p class="error-message">CLIENT CALC ERROR:<br>' + errors.join('<br>') + '</p>';
-        } else {
-             DOM.errorDisplay.innerHTML = ''; // Clear errors if no issues found
+             message += '<p class="error-message">CLIENT CALC ERROR:<br>' + errors.join('<br>') + '</p>';
         }
+        // Display warnings, perhaps with a different class or styling
+         if (warnings.length > 0) {
+             message += '<p class="warning-message" style="color: #FFD700;">WARNING:<br>' + warnings.join('<br>') + '</p>'; // Using gold color for warnings
+         }
+        DOM.errorDisplay.innerHTML = message;
     }
 
 
-    // Add result to staging area if data was valid and not just an error packet
-    // Check if any primary sensor data is present to decide if it's a valid measurement
+    // Add result to staging area ONLY IF there are NO critical calculation errors
+    // A "full open" warning should NOT prevent adding to staging
     const hasMeasurementData = (showS1 && (s1_o_us != null && s1_o_us > 0)) ||
                                (showS2 && (s2_o_us != null && s2_o_us > 0)) ||
-                               (showS3 && (s3_o_us != null && s3_o_us > 0)); // Check for at least one valid *open* timestamp
+                               (showS3 && (s3_o_us != null && s3_o_us > 0));
 
     if (typeof addResultToStagingArea === 'function' && hasMeasurementData && errors.length === 0) {
         addResultToStagingArea();
@@ -265,8 +273,25 @@ function updateShutterDisplay(rawData) {
             console.warn("Data received but client calculation errors occurred. Not adding to staging.", errors);
             // Optional: Log the raw data with errors somewhere else if needed
          } else {
+             // This case should mostly be caught earlier by hasMeasurementData check,
+             // but keep for robustness if errors were pushed without data
              console.warn("Data packet received but contained no valid timestamps or had device errors.", rawData);
          }
+    } else if (warnings.length > 0) {
+         // Data had warnings but no errors, and had measurement data
+         if (hasMeasurementData) {
+              console.log("Data received with warnings, added to staging.", warnings);
+               addResultToStagingArea(); // ADD TO STAGING EVEN WITH WARNINGS
+         } else {
+              console.warn("Data packet received with warnings but no valid timestamps.", rawData, warnings);
+         }
+    } else if (hasMeasurementData) {
+         // Data had no errors or warnings, and had measurement data - add to staging
+         console.log("Data received with no errors or warnings, added to staging.");
+          addResultToStagingArea(); // ADD TO STAGING if data is valid and no errors/warnings
+    } else {
+         // Data packet received but contained no valid timestamps (e.g., all 0s)
+         console.warn("Data packet received but contained no valid timestamps or had device errors.", rawData);
     }
 }
 

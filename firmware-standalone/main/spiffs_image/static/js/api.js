@@ -16,7 +16,10 @@ function connectWebSocket(callbacks) {
 
     Object.assign(wsCallbacks, callbacks);
     // Determine WebSocket URL based on the current window's protocol and host
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+    // const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+    const ESP32_HOST = 'esp.local'; // Or the IP address like '192.168.1.100'
+    const ESP32_PORT = 80; // Or the port your ESP32 web server is running on
+    const wsUrl = `ws://${ESP32_HOST}:${ESP32_PORT}/ws`;
     console.log("Attempting WS connection:", wsUrl);
     window.updateSystemStatus("Attempting WS connection...");
 
