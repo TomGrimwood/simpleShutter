@@ -1,0 +1,50 @@
+# Kconfig for wifi_manager component
+
+config WIFI_MANAGER_AP_SSID
+    string "WiFi Manager AP SSID"
+    default "ESP32_SHUTTER_CONFIG"
+    help
+        SSID for the temporary configuration Access Point.
+
+config WIFI_MANAGER_AP_PASSWORD
+    string "WiFi Manager AP Password"
+    default "esp32setup"
+    help
+        Password for the temporary configuration Access Point.
+        Must be at least 8 characters. Leave empty for open network (not recommended).
+
+config WIFI_MANAGER_STA_CONNECTION_TIMEOUT_MS
+    int "STA connection timeout (ms)"
+    default 15000
+    help
+        Time in milliseconds to wait for a STA connection before falling back to AP mode.
+
+config WIFI_MANAGER_STA_MAX_RETRIES
+    int "STA max connection retries"
+    default 5
+    help
+        Maximum number of times to retry connecting to STA before falling back to AP mode.
+
+config WIFI_MANAGER_NVS_NAMESPACE
+    string "NVS namespace for WiFi credentials"
+    default "wifi_creds"
+    help
+        Namespace in NVS where WiFi credentials will be stored.
+
+config WIFI_MANAGER_SSID_KEY
+    string "NVS key for SSID"
+    default "ssid"
+    help
+        Key used to store SSID in NVS.
+
+config WIFI_MANAGER_PASSWORD_KEY
+    string "NVS key for password"
+    default "password"
+    help
+        Key used to store password in NVS.
+
+config WIFI_MANAGER_MODE_KEY
+    string "NVS key for WiFi mode preference"
+    default "wifi_mode"
+    help
+        Key used to store the preferred WiFi mode (STA or forced AP) in NVS.

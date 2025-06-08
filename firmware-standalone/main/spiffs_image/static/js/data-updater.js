@@ -35,7 +35,11 @@ function setRowVisibilityByCellId(cellId, visible) {
 function updateShutterDisplay(rawData) {
     if (!rawData || typeof rawData.mode === 'undefined') {
         console.error("updateShutterDisplay: Invalid or missing rawData from ESP32.");
-        if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = '<p class="error-message">Error: Invalid data received from device.</p>';
+        // Ensure error display is visible
+        if (DOM.errorDisplay) {
+            DOM.errorDisplay.innerHTML = '<p class="error-message">Error: Invalid data received from device.</p>';
+            DOM.errorDisplay.style.display = 'block'; // Make sure it's visible
+        }
         return;
     }
 
@@ -45,7 +49,10 @@ function updateShutterDisplay(rawData) {
         typeof calculateAndDisplayComparison !== 'function' || typeof addResultToStagingArea !== 'function' || typeof getCurrentTimeScalingFactor !== 'function' ||
         !DOM.timestampUnitSelector || !DOM.errorDisplay || !DOM.sensorModeSelector) {
         console.error("Data updater initialization failed: Missing core helper functions or critical DOM elements.");
-        if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = '<p class="error-message">Error: UI components missing for display update.</p>';
+        if (DOM.errorDisplay) {
+            DOM.errorDisplay.innerHTML = '<p class="error-message">Error: UI components missing for display update.</p>';
+            DOM.errorDisplay.style.display = 'block'; // Make sure it's visible
+        }
         return;
     }
 
@@ -86,8 +93,9 @@ function updateShutterDisplay(rawData) {
     setRowVisibilityByCellId('raw_s3', showS3);
 
     // Clear previous errors if data is valid
-    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) DOM.errorDisplay.innerHTML = ''; // Keep client calc errors
-    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("DEVICE ERROR")) DOM.errorDisplay.innerHTML = DOM.errorDisplay.innerHTML.replace(/<p class="error-message">DEVICE ERROR.*?<\/p>/, ''); // Clear device errors
+    // This logic needs to be careful: if a device error exists, don't clear it
+    // if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) DOM.errorDisplay.innerHTML = ''; // Keep client calc errors
+    // if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("DEVICE ERROR")) DOM.errorDisplay.innerHTML = DOM.errorDisplay.innerHTML.replace(/<p class="error-message">DEVICE ERROR.*?<\/p>/, ''); // Clear device errors
 
     const errors = [];
     const warnings = []; // <<< Added warnings array
@@ -204,8 +212,6 @@ function updateShutterDisplay(rawData) {
          const currentFullOpenDur = Math.max(0, avgExpMs - c1s1s3t);
          if (currentFullOpenDur > 0) {
              // Slit is fully open. Indicate this instead of a slit width.
-             // Maybe display "Full Frame" or similar? For now, setting to null.
-             effSlitMm = null;
              // PUSH THIS MESSAGE TO WARNINGS, NOT ERRORS
              if (avgExpMs > 0 && c1s1s3t > 0) warnings.push(`Slit: Full open (${currentFullOpenDur.toFixed(3)} ms), slit width calculation not standard.`); // Adjusted message goes here
          } else {
@@ -253,9 +259,16 @@ function updateShutterDisplay(rawData) {
         }
         // Display warnings, perhaps with a different class or styling
          if (warnings.length > 0) {
-             message += '<p class="warning-message" style="color: #FFD700;">WARNING:<br>' + warnings.join('<br>') + '</p>'; // Using gold color for warnings
+             message += '<p class="warning-message">' + warnings.join('<br>') + '</p>'; // Using warning-message class
          }
         DOM.errorDisplay.innerHTML = message;
+
+        // Hide the error display div if no message is present (empty string)
+        if (message === '') {
+            DOM.errorDisplay.style.display = 'none';
+        } else {
+            DOM.errorDisplay.style.display = 'block';
+        }
     }
 
 

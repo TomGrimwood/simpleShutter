@@ -23,8 +23,9 @@ body {
     border-radius: 8px; /* Rounded corners for the entire app container */
     overflow: hidden; /* Ensures inner elements respect border-radius */
     margin: 20px; /* Add some margin around the app */
-    max-width: calc(100% - 40px); /* Adjust for margin */
-    width: 1200px; /* Max width for desktop */
+    /* REMOVED max-width and fixed width to allow spanning */
+    max-width: unset; /* Allow it to take full available width */
+    width: unset; /* Allow it to take full available width */
 }
 
 /* --- Configuration Panel --- */
@@ -100,6 +101,7 @@ body {
 }
 #configPanelContent input[type="number"],
 #configPanelContent input[type="text"],
+#configPanelContent input[type="password"], /* ADD THIS LINE */
 #configPanelContent select {
     width: calc(100% - 20px); /* Account for padding */
     padding: 8px 10px; /* More padding */
@@ -115,6 +117,7 @@ body {
 }
 #configPanelContent input[type="number"]:focus,
 #configPanelContent input[type="text"]:focus,
+#configPanelContent input[type="password"]:focus, /* ADD THIS LINE */
 #configPanelContent select:focus {
     border-color: #7A9BFF; /* Accent color on focus */
     background-color: #2C2C42;
@@ -229,7 +232,7 @@ table {
     background-color: #2A2A40; /* Table background */
     margin: 20px auto; /* More margin */
     width: 100%;
-    max-width: 900px;
+    /* REMOVED max-width: 900px; to allow tables to span */
     border-radius: 8px; /* More rounded */
     box-sizing: border-box;
     box-shadow: 0 4px 15px rgba(0,0,0,0.4); /* Soft shadow */
@@ -311,7 +314,25 @@ table tbody tr:nth-child(even) td { background-color: #25253A; } /* Slightly dif
 
 
 .error-message { color: #FF7070; font-weight: bold; margin-top: 15px; font-size: 14px;}
-#error-display { text-align:center; margin-top:20px; padding: 10px; color: #FF7070; background-color: #402020; border-radius: 6px;}
+/* Modified: Error display div styles */
+#error-display {
+    text-align:center;
+    margin-top:20px;
+    padding: 10px;
+    color: #FF7070;
+    background-color: #402020;
+    border-radius: 6px;
+    display: none; /* Initially hidden */
+}
+#error-display:not(:empty) { /* Show only if it's not empty */
+    display: block;
+}
+.warning-message { /* New class for warnings */
+    color: #FFD700; /* Gold color */
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 5px;
+}
 .footer {
     text-align: center; font-size: 13px; margin-top: auto; color: #A0A0B0; padding: 15px;
     background-color: #2A2A40; border-top: 1px solid rgba(0,0,0,0.2); flex-shrink: 0;
@@ -320,7 +341,10 @@ table tbody tr:nth-child(even) td { background-color: #25253A; } /* Slightly dif
 
 /* --- Tab Navigation --- */
 .tab-navigation {
-    margin: 20px auto 0; width: 100%; max-width: 900px; padding-bottom: 0;
+    margin: 20px auto 0;
+    width: calc(100% - 40px); /* Adjust for parent padding (20px left + 20px right) */
+    max-width: unset; /* Allow to span full width */
+    padding-bottom: 0;
     border-bottom: 1px solid rgba(0,0,0,0.2); display: flex; height: 40px; flex-shrink: 0; box-sizing: border-box;
 }
 .tab-button {
@@ -345,8 +369,10 @@ table tbody tr:nth-child(even) td { background-color: #25253A; } /* Slightly dif
     border: 1px solid rgba(0,0,0,0.2);
     border-top: none;
     border-radius: 0 0 8px 8px; /* Match table radius */
-    margin: 0 auto 20px auto; width: 100%;
-    max-width: 900px; box-sizing: border-box; flex-grow: 1; overflow-y: auto;
+    margin: 0 auto 20px auto;
+    width: calc(100% - 40px); /* Adjust for padding within tab-content */
+    max-width: unset; /* REMOVED previous max-width: 900px; */
+    box-sizing: border-box; flex-grow: 1; overflow-y: auto;
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 .tab-content.active { display: block; }
@@ -483,10 +509,38 @@ div.tab-content, .bucket-expanded-content { overflow-x: auto; }
 .bucket-item.drag-over .bucket-header { border: 2px dashed #9BBFFF; background-color: #384060; }
 
 
+/* New style for the IP note */
+.config-note {
+    font-size: 13px;
+    color: #A0A0B0;
+    margin-top: 20px;
+    line-height: 1.4;
+    padding: 8px 12px;
+    background-color: #25253A;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+.config-note .data-value { /* Ensure data-value inside note keeps its color but might adjust padding */
+    color: #9BBFFF;
+    font-weight: bold;
+    display: inline; /* Keep it inline within the paragraph */
+    background: none; /* Remove background */
+    border: none; /* Remove border */
+    padding: 0; /* Remove padding */
+}
+
 @media (max-width: 1024px) {
-    .page-container { margin: 15px; max-width: calc(100% - 30px); }
+    .page-container { margin: 15px; max-width: unset; } /* Removed max-width */
     .config-panel { width: 250px; }
     #savedBucketsContainer { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
+
+    /* Adjust tables in media query for max-width on smaller desktop screens */
+    table {
+        max-width: unset; /* Allow tables to take full width of container */
+    }
+    .tab-navigation, .tab-content {
+        width: calc(100% - 30px); /* Adjusted for 15px margin on page-container */
+    }
 }
 @media (max-width: 768px) {
     body { font-size: 14px; }

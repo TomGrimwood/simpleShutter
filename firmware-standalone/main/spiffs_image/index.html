@@ -35,6 +35,40 @@
                 <label>Time Scaling Factor:</label>
                 <span id="timeScalingFactorDisplay" class="data-value">---</span>
             </div>
+
+            <!-- NEW: WiFi Configuration Section -->
+            <div id="wifiConfigSection">
+                <hr style="border-top: 1px solid #3A3A50; margin: 25px 0;">
+                <h4 style="color: #FFFFFF; font-size: 16px; margin-bottom: 15px;">WiFi Configuration</h4>
+                <div>
+                    <label for="wifiSsidInput">WiFi Network (SSID):</label>
+                    <input type="text" id="wifiSsidInput" placeholder="Enter network name" maxlength="32">
+                </div>
+                <div>
+                    <label for="wifiPasswordInput">WiFi Password:</label>
+                    <input type="password" id="wifiPasswordInput" placeholder="Leave empty for open networks" maxlength="64">
+                </div>
+                <!-- Removed: Stay in Hotspot Mode checkbox -->
+                <!-- Removed: Revert to Saved Network button -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="saveWifiButton" class="action-button primary" style="flex-grow: 1;">Save & Reboot</button> <!-- CHANGED TEXT -->
+                    <button id="forgetWifiButton" class="action-button danger" style="flex-grow: 1;">Forget & Reboot</button>
+                </div>
+                <!-- Note about IP -->
+                <p class="config-note">Access in Hotspot Mode at <span class="data-value">192.168.4.1</span>. In WiFi Mode, use <span class="data-value">esp.local</span>.</p>
+            </div>
+            <!-- END NEW: WiFi Configuration Section -->
+
+            <!-- NEW: General Device Actions Section -->
+            <div id="generalActionsSection" style="margin-top: 25px;">
+                <hr style="border-top: 1px solid #3A3A50; margin: 25px 0;">
+                <h4 style="color: #FFFFFF; font-size: 16px; margin-bottom: 15px;">Device Actions</h4>
+                <div>
+                    <button id="rebootDeviceButton" class="action-button danger" style="width: 100%;">Reboot Device</button>
+                </div>
+            </div>
+            <!-- END NEW: General Device Actions Section -->
+
         </div>
     </div>
 
