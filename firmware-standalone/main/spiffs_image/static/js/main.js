@@ -1,136 +1,201 @@
-// main.js - Refined, fallbacks removed
+// main.js - Main application entry point
+// Depends on ui-helpers.js for DOM access, updateSystemStatus, initializeTabs, activateTab
+// Depends on config-panel.js for initializeConfigPanelInteraction
+// Depends on api.js for connectWebSocket, setEspMode, resetEspSystem, initializeApiHandlers
+// Depends on data-updater.js for updateShutterDisplay, updateEsp32Status, updateEspModeDisplay
+// Depends on results-log.js for createBucket, clearStagingArea, renderStagingTable, renderSavedBuckets, addDragListenersToStagingRows, addDragListenersToBuckets
 
-// Global application state
+// Global state (consider refactoring into a state object later)
 window.AppState = {
-    lastReceivedData: null,
-    isFetching: false,
+    lastReceivedData: null, // Stores the last valid data packet from the device
+    // stagedResults and resultBuckets are currently global in results-log.js
 };
 
-// Wrapper for mode change
+// Wrapper around setEspMode from api.js, includes status updates
 async function applyModeChangeWrapper() {
-    const modeSelect = DOM.sensorModeSelector;
-    if (!modeSelect) {
-        console.error("Sensor mode selector not found.");
-        if (typeof updateSystemStatus === 'function') updateSystemStatus("Internal UI error.");
-        return;
-    }
-    const selectedMode = parseInt(modeSelect.value, 10);
-    if (typeof updateSystemStatus === 'function') updateSystemStatus(`Setting mode to ${modeSelect.options[modeSelect.selectedIndex].text}...`);
+    // Ensure DOM elements and API functions are available
+     if (!DOM.sensorModeSelector || typeof setEspMode !== 'function' || typeof updateSystemStatus !== 'function') {
+         console.error("Mode change failed: Missing DOM elements or API function.");
+         if (typeof updateSystemStatus === 'function') updateSystemStatus("UI error: Mode selector missing or API unavailable.");
+         return;
+     }
 
+    const modeSelect = DOM.sensorModeSelector;
+    const modeVal = parseInt(modeSelect.value, 10);
+    updateSystemStatus(`Setting mode to ${modeSelect.options[modeSelect.selectedIndex].text}...`);
     try {
-        const result = await setEspMode(selectedMode); // from api.js
-        if (result.success) {
-            if (typeof updateSystemStatus === 'function') updateSystemStatus(`Mode set: ${result.mode_set}. Fetching...`);
-            if (typeof updateEspModeDisplay === 'function') updateEspModeDisplay(result.mode_set);
-            // Data will be pushed by the server via WebSocket after mode change
-            // No explicit fetch needed here anymore.
+        const result = await setEspMode(modeVal);
+        if (!result.success) {
+            updateSystemStatus(`Mode set failed: ${result.message || 'Unknown error'}`);
+            console.error("Failed to set ESP mode:", result.message);
         } else {
-            if (typeof updateSystemStatus === 'function') updateSystemStatus(`Mode set failed: ${result.message || 'Unknown error'}`);
+             updateSystemStatus("Mode change command sent.");
+             // The actual mode display update happens when the device sends back data with the new mode
         }
     } catch (error) {
         console.error("Error applying mode change:", error);
-        if (typeof updateSystemStatus === 'function') updateSystemStatus(`Mode set error: ${error.message.substring(0,100)}`);
+        updateSystemStatus(`Mode set error: ${error.message || 'Unknown'}`);
     }
 }
 
-// Wrapper for reset
+// Wrapper around resetEspSystem from api.js, includes status updates and clearing staging
 async function manualResetWrapper() {
-    if (typeof updateSystemStatus === 'function') updateSystemStatus("Sending reset command...");
+     // Ensure API function and results-log functions are available
+     if (typeof resetEspSystem !== 'function' || typeof clearStagingArea !== 'function' || typeof updateSystemStatus !== 'function') {
+         console.error("Reset failed: Missing API or results-log function.");
+         if (typeof updateSystemStatus === 'function') updateSystemStatus("UI error: Reset function unavailable.");
+         return;
+     }
+
+    updateSystemStatus("Sending reset command...");
     try {
-        const result = await resetEspSystem(); // from api.js
+        const result = await resetEspSystem();
         if (result.success) {
-            if (typeof updateSystemStatus === 'function') updateSystemStatus("System reset. Fetching...");
-            if (typeof clearResultsLog === 'function') {
-                clearResultsLog();
-            }
-            AppState.lastReceivedData = null; // Clear local cache, wait for new WS data
-            // Data will be pushed by the server via WebSocket after reset
-            // No explicit fetch needed here anymore.
+            // Clear local state assumed to be reset by the device
+            if (typeof clearStagingArea === 'function') clearStagingArea();
+            AppState.lastReceivedData = null; // Clear last data on reset
+            updateSystemStatus("System reset command sent. Awaiting device restart...");
         } else {
-            if (typeof updateSystemStatus === 'function') updateSystemStatus("Reset failed.");
+             updateSystemStatus(`Reset failed: ${result.message || 'Unknown error'}`);
+            console.error("Failed to reset ESP system:", result.message);
         }
     } catch (error) {
         console.error("Error resetting system:", error);
-        if (typeof updateSystemStatus === 'function') updateSystemStatus(`Reset error: ${error.message.substring(0,100)}`);
+        updateSystemStatus(`Reset error: ${error.message || 'Unknown'}`);
     }
 }
+// Expose manualResetWrapper globally if needed for user interaction (e.g., a button)
+window.manualReset = manualResetWrapper;
 
-// Called by config panel or timestamp unit changes
+
+// Function to trigger a display update using the last received data
+// Called when config changes or timestamp unit changes
 function triggerDisplayUpdate() {
+     // Ensure updateShutterDisplay is available
+     if (typeof updateShutterDisplay !== 'function') {
+          console.error("triggerDisplayUpdate failed: updateShutterDisplay function not available.");
+          return;
+     }
+
     if (window.AppState.lastReceivedData) {
-        if (typeof updateSystemStatus === 'function') updateSystemStatus("Config change, re-rendering...");
-        if (typeof updateShutterDisplay === 'function') updateShutterDisplay(window.AppState.lastReceivedData);
+        updateSystemStatus("Config/Unit change, re-rendering current data...");
+        updateShutterDisplay(window.AppState.lastReceivedData); // Re-process and display the last data
     } else {
-        // No data yet, WebSocket should provide it.
-        if (typeof updateSystemStatus === 'function') updateSystemStatus("No data to re-render. Waiting for WebSocket.");
+        updateSystemStatus("No current data to re-render. Waiting for WebSocket connection and data.");
     }
 }
-window.triggerDisplayUpdate = triggerDisplayUpdate; // Make global for config-panel.js
+// Expose triggerDisplayUpdate globally so config-panel can call it
+window.triggerDisplayUpdate = triggerDisplayUpdate;
 
+// Main initialization function called when the DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof initializeTabs === 'function') initializeTabs();
-    if (typeof initializeConfigPanelInteraction === 'function') initializeConfigPanelInteraction();
-    if (typeof initializeApiHandlers === 'function') initializeApiHandlers(); // Minimal, just logs
-
-    if (DOM.sensorModeSelector) {
-        DOM.sensorModeSelector.addEventListener('change', applyModeChangeWrapper);
-    }
-    
-    // Example: Add buttons to HTML if you want to use these directly
-    // <button id="manualResetButton">Reset ESP32</button>
-    const resetButton = document.getElementById('manualResetButton');
-    if (resetButton) resetButton.addEventListener('click', manualResetWrapper);
-
-    if (typeof renderResultsLogTable === 'function') renderResultsLogTable(); // Initialize empty log table
-    
-    if (DOM.timestampUnitSelector) {
-        DOM.timestampUnitSelector.addEventListener('change', triggerDisplayUpdate);
+    // Ensure core DOM elements are present before proceeding
+    if (!DOM.pageContainer || !DOM.configPanel || !DOM.mainContent || !DOM.header || !DOM.statusTab || !DOM.tabNavigation || !DOM.footer || !DOM.confirmationModal) {
+        console.error("Core UI elements not found. Application cannot start.");
+        // Attempt to show a basic error message if possible
+        if (document.body) {
+             document.body.innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Error: Core UI elements missing. Check HTML structure.</div>';
+        }
+        return;
     }
 
-    if (typeof updateEsp32Status === 'function') updateEsp32Status(false, "Initializing...", null);
-    if (typeof updateEspModeDisplay === 'function') updateEspModeDisplay("UNKNOWN");
-    
-    // Callbacks for WebSocket from api.js
-    const webSocketHandlers = {
+    // Initialize UI components
+    initializeTabs();
+    initializeConfigPanelInteraction();
+
+    // Initialize API handling (sets up WebSocket or mock)
+    initializeApiHandlers(); // This is just a log in the provided code, but good practice
+
+    // Add event listeners
+    if (DOM.sensorModeSelector) DOM.sensorModeSelector.addEventListener('change', applyModeChangeWrapper);
+    if (DOM.createBucketButton) DOM.createBucketButton.addEventListener('click', createBucket);
+    if (DOM.clearStagingButton) DOM.clearStagingButton.addEventListener('click', clearStagingArea);
+    if (DOM.timestampUnitSelector) DOM.timestampUnitSelector.addEventListener('change', triggerDisplayUpdate);
+
+    // Initial rendering of results log and buckets (will be empty initially)
+    renderStagingTable();
+    renderSavedBuckets();
+
+    // Add drag/drop listeners to initial elements (more are added as buckets/rows are rendered)
+    addDragListenersToStagingRows(); // Might be empty initially, but listeners attach to tbody for future rows
+    addDragListenersToBuckets(); // Will be empty initially, listeners added with renderSavedBuckets
+
+    // Update initial status displays
+    updateEsp32Status(false, "Initializing...", null);
+    updateEspModeDisplay("UNKNOWN");
+
+    // Define WebSocket event handlers
+    const wsHandlers = {
         onOpen: () => {
-            if (typeof updateEsp32Status === 'function') updateEsp32Status(true, "Connected (WS)", Date.now());
-            if (typeof updateSystemStatus === 'function') updateSystemStatus("WebSocket connected. Waiting for data...");
-            // Initial data should be sent by server on connect.
+            updateEsp32Status(true, "Connected (WS)", Date.now());
+            updateSystemStatus("WebSocket connected. Waiting for device data...");
+            // Could potentially send a 'getmode' command here if the ESP supports it
         },
         onMessage: (jsonData) => {
             try {
                 const rawData = JSON.parse(jsonData);
-                AppState.lastReceivedData = rawData; // Update global state
-                if (typeof updateShutterDisplay === 'function') updateShutterDisplay(rawData);
-                if (typeof updateEspModeDisplay === 'function') updateEspModeDisplay(rawData.mode);
-                if (typeof updateEsp32Status === 'function') updateEsp32Status(true, "Connected (WS)", Date.now());
-                if (typeof updateSystemStatus === 'function') updateSystemStatus("Data received via WebSocket.");
-            } catch (error) {
-                console.error("Error processing WebSocket message:", error, "Data:", jsonData);
-                if (typeof updateSystemStatus === 'function') updateSystemStatus("WS data error. See console.");
+                window.AppState.lastReceivedData = rawData; // Store the last received data
+
+                // Check for errors in the data packet from the device
+                if (rawData.error) {
+                    console.error("Device Error:", rawData.error);
+                     if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">DEVICE ERROR: ${rawData.error}</p>`;
+                    updateSystemStatus("Device reported an error.");
+                    // Don't process measurement data if there's a device error flag
+                } else {
+                     if (DOM.errorDisplay && !DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) {
+                         DOM.errorDisplay.innerHTML = ''; // Clear device error display if a non-error packet comes
+                     }
+                    if (typeof updateShutterDisplay === 'function') updateShutterDisplay(rawData); // Process and display data
+                     else console.error("updateShutterDisplay function not found.");
+                }
+
+                // Always update connection status and last update time on any message
+                updateEsp32Status(true, "Connected (WS)", Date.now());
+                 if (!rawData.error) updateSystemStatus("Data received."); // Only update status if it wasn't an error packet
+
+                // Always update mode display if mode is provided in the packet
+                if (typeof updateEspModeDisplay === 'function' && rawData.mode !== undefined) {
+                     updateEspModeDisplay(rawData.mode);
+                } else if (rawData.mode === undefined) {
+                     console.warn("Received data packet without 'mode' field.");
+                }
+
+            } catch (e) {
+                console.error("WS message processing error:", e, "Received data:", jsonData);
+                 if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">CLIENT JSON PARSE ERROR:<br>${e.message}</p>`;
+                updateSystemStatus("WS data error.");
             }
         },
-        onError: (error) => {
-            console.error("WebSocket connection error:", error);
-            if (typeof updateEsp32Status === 'function') updateEsp32Status(false, "WS Error", Date.now());
-            if (typeof updateSystemStatus === 'function') updateSystemStatus("WebSocket error. See console.");
+        onError: (e) => {
+            console.error("WebSocket error:", e);
+            updateEsp32Status(false, "WS Error", Date.now());
+            updateSystemStatus("WebSocket error.");
+             if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = `<p class="error-message">WEBSOCKET ERROR: See console for details.</p>`;
         },
-        onClose: (event) => {
-            if (typeof updateEsp32Status === 'function') updateEsp32Status(false, `WS Closed (Code: ${event.code})`, Date.now());
-            if (typeof updateSystemStatus === 'function') updateSystemStatus(`WebSocket closed. Will attempt to reconnect...`);
-             // Attempt to reconnect
-            setTimeout(() => {
-                if (typeof updateSystemStatus === 'function') updateSystemStatus("Attempting WebSocket reconnection...");
-                if (typeof connectWebSocket === 'function') connectWebSocket(webSocketHandlers);
-            }, 5000); // Reconnect after 5 seconds
+        onClose: (e) => {
+            console.log("WebSocket closed.", e);
+            updateEsp32Status(false, `WS Closed (Code: ${e.code || 'N/A'})`, Date.now());
+            updateSystemStatus(`WebSocket closed.`);
+
+            // Clear any mock interval if running
+            // This assumes mockInterval is a variable managed within api.js and perhaps exposed or accessible
+             if (window.mockInterval) clearInterval(window.mockInterval); // Assuming mockInterval is globally accessible from api.js
+
+            // Attempt to reconnect if the connection wasn't intentionally closed
+             // Check if the URL indicates it was the mock WebSocket; don't auto-reconnect mock
+            if (webSocket && typeof webSocket.url === 'string' && !webSocket.url.startsWith('mock:')) {
+                updateSystemStatus("Attempting WebSocket reconnection in 5 seconds...");
+                setTimeout(() => {
+                    connectWebSocket(wsHandlers); // Re-call connectWebSocket with the same handlers
+                }, 5000); // Attempt reconnect every 5 seconds
+            } else {
+                 // Mock WebSocket was closed, no reconnection needed for mock
+                 updateSystemStatus("Mock WebSocket closed. No reconnection attempt.");
+            }
         }
     };
 
-    if (typeof connectWebSocket === 'function') {
-        connectWebSocket(webSocketHandlers); // Establish WebSocket connection
-    }
-
-    // Expose functions to global scope if HTML uses onclick="...".
-    window.applyModeChange = applyModeChangeWrapper;
-    window.manualReset = manualResetWrapper;
+    // Establish the WebSocket connection (or mock connection)
+    connectWebSocket(wsHandlers);
 });

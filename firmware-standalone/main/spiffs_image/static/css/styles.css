@@ -1,470 +1,567 @@
-/* styles.css - MacOS 1999 "Platinum" Nightmode Aesthetic */
+/* styles.css - Modern Dark Theme Aesthetic */
 
 /* --- Base & Typography --- */
 body {
-    font-family: "Verdana", "Geneva", "Lucida Grande", sans-serif; /* Classic Mac friendly fonts */
-    background-color: #2C2C2C; /* Deep charcoal background */
-    color: #D1D1D1; /* Light gray text */
+    font-family: "Inter", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    background-color: #1A1A2E; /* Dark blue-purple */
+    color: #E0E0F0; /* Light text */
     margin: 0;
     padding: 0;
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    font-size: 15px; /* Increased from 12px */
-    -webkit-font-smoothing: antialiased; /* Crisper text rendering */
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 .page-container {
     display: flex;
     flex-grow: 1;
+    background-color: #202030; /* Slightly lighter than body for main content area */
+    box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Overall shadow for the app */
+    border-radius: 8px; /* Rounded corners for the entire app container */
+    overflow: hidden; /* Ensures inner elements respect border-radius */
+    margin: 20px; /* Add some margin around the app */
+    max-width: calc(100% - 40px); /* Adjust for margin */
+    width: 1200px; /* Max width for desktop */
 }
 
-/* --- Configuration Panel (Classic Window Style) --- */
+/* --- Configuration Panel --- */
 .config-panel {
-    width: 300px; /* Increased from 240px */
-    background-color: #383838; /* Dark panel background */
+    width: 300px;
+    background-color: #2A2A40; /* Darker blue-purple for panel */
     padding: 0;
-    border-right: 1px solid #1A1A1A; /* Darker border */
+    border-right: 1px solid rgba(0,0,0,0.2);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.4);
+    transition: width 0.3s ease-in-out;
+    flex-shrink: 0;
 }
-.config-header-container { /* Title bar */
+.config-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 10px; /* Increased from 4px 8px */
-    background-color: #4A4A4A; /* Slightly lighter title bar */
-    border-bottom: 1px solid #202020;
+    padding: 10px 15px;
+    background-color: #3A3A50; /* Header background */
+    border-bottom: 1px solid rgba(0,0,0,0.2);
     width: 100%;
     box-sizing: border-box;
-    height: 35px; /* Increased from 28px */
+    height: 50px; /* Taller header */
+    cursor: default;
 }
 .config-panel h3 {
     margin: 0;
-    color: #E0E0E0; /* Lighter title text */
-    font-size: 16px; /* Increased from 13px */
-    font-weight: bold;
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: 600; /* Slightly bolder */
     white-space: nowrap;
     overflow: hidden;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease-in-out, max-width 0.3s ease-in-out;
 }
-#toggleConfigButton { /* Classic Mac OS button */
-    background-color: #555555;
-    border: 1px solid;
-    border-color: #777777 #404040 #404040 #777777; /* Bevel */
-    color: #E0E0E0;
-    border-radius: 3px;
-    padding: 3px 10px; /* Increased from 2px 8px */
-    font-size: 15px; /* Increased from 12px */
+#toggleConfigButton {
+    background: linear-gradient(180deg, #5A5A70, #4A4A60); /* Subtle gradient */
+    border: none;
+    color: #E0E0F0;
+    border-radius: 5px; /* Softer corners */
+    padding: 5px 12px;
+    font-size: 16px;
     cursor: pointer;
-    margin-left: 10px; /* Increased from 8px */
-    box-shadow: 0 1px 0px rgba(255,255,255,0.1) inset; /* Subtle top highlight */
+    margin-left: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    line-height: 1;
+    min-width: 30px;
+    text-align: center;
+    transition: all 0.2s ease;
 }
-#toggleConfigButton:hover {
-    background-color: #606060;
-}
+#toggleConfigButton:hover { background: linear-gradient(180deg, #6A6AA0, #5A5A80); box-shadow: 0 3px 6px rgba(0,0,0,0.4); }
 #toggleConfigButton:active {
-    background-color: #484848;
-    border-color: #404040 #777777 #777777 #404040; /* Inset bevel */
-    box-shadow: 0 1px 1px rgba(0,0,0,0.3) inset;
+    background: linear-gradient(180deg, #4A4A60, #5A5A70);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4) inset;
+    transform: translateY(1px);
 }
-
 #configPanelContent {
-    padding: 12px; /* Increased from 10px */
+    padding: 15px;
     overflow-y: auto;
     flex-grow: 1;
+    transition: opacity 0.3s ease-in-out, padding 0.3s ease-in-out, max-height 0.3s ease-in-out;
 }
-#configPanelContent div {
-    margin-bottom: 15px; /* Increased from 12px */
-}
+#configPanelContent div { margin-bottom: 20px; } /* More spacing */
 #configPanelContent label {
     display: block;
-    margin-bottom: 5px; /* Increased from 4px */
-    font-weight: normal; /* Classic labels weren't always bold */
-    font-size: 14px; /* Increased from 11px */
-    color: #B0B0B0;
+    margin-bottom: 8px; /* More spacing */
+    font-weight: 500;
+    font-size: 14px;
+    color: #C0C0D0;
 }
 #configPanelContent input[type="number"],
 #configPanelContent input[type="text"],
 #configPanelContent select {
-    width: calc(100% - 12px); /* Increased from 10px */
-    padding: 5px 6px; /* Increased from 4px 5px */
-    border: 1px solid;
-    border-color: #202020 #606060 #606060 #202020; /* Inset border */
-    border-radius: 3px;
-    font-family: "Monaco", "Courier New", Courier, monospace;
-    font-size: 14px; /* Increased from 11px */
+    width: calc(100% - 20px); /* Account for padding */
+    padding: 8px 10px; /* More padding */
+    border: 1px solid #404050; /* Softer border */
+    border-radius: 6px; /* More rounded */
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; /* Modern monospace */
+    font-size: 14px;
     box-sizing: border-box;
-    background-color: #282828; /* Dark input background */
-    color: #E0E0E0; /* Light text in input */
-    box-shadow: 1px 1px 2px rgba(0,0,0,0.3) inset;
+    background-color: #252535; /* Darker background */
+    color: #E0E0F0;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
 }
 #configPanelContent input[type="number"]:focus,
 #configPanelContent input[type="text"]:focus,
 #configPanelContent select:focus {
-    border-color: #4D87C3; /* Muted blue focus, like selection */
-    background-color: #303030;
+    border-color: #7A9BFF; /* Accent color on focus */
+    background-color: #2C2C42;
     outline: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 3px rgba(122,155,255,0.3); /* Soft glow */
 }
 .config-panel .data-value {
-    font-family: "Monaco", "Courier New", Courier, monospace;
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
     font-weight: bold;
-    color: #7FB0E8; /* Muted blue for data values */
+    color: #9BBFFF; /* Lighter accent blue */
     display: block;
-    margin-top: 5px; /* Increased from 4px */
-    padding: 6px 10px; /* Increased from 5px 8px */
-    background-color: #2A2A2A;
-    border: 1px solid #1F1F1F;
-    border-radius: 3px;
-    font-size: 14px; /* Increased from 11px */
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #303045;
+    border: 1px solid #404050;
+    border-radius: 6px;
+    font-size: 15px;
+    text-align: right; /* Align data values to the right */
 }
 .config-panel .error-message {
-    color: #FF8080 !important; /* Light red for errors */
+    color: #FF7070 !important; /* Brighter red for errors */
     font-weight: bold;
-    font-size: 14px; /* Increased from 11px */
+    font-size: 14px;
 }
-
-/* Collapsed State */
-.config-panel.collapsed { width: 56px; } /* Increased from 45px */
+.config-panel.collapsed { width: 60px; } /* Slightly wider when collapsed */
 .config-panel.collapsed .config-header-container { justify-content: center; }
 .config-panel.collapsed h3 { opacity: 0; max-width: 0; pointer-events: none;}
 .config-panel.collapsed #toggleConfigButton { margin-left: 0; }
-.config-panel.collapsed #configPanelContent { opacity: 0; max-height: 0; padding: 0 12px; pointer-events: none; visibility: hidden; } /* Padding increased */
-
+.config-panel.collapsed #configPanelContent { opacity: 0; max-height: 0; padding: 0 15px; pointer-events: none; visibility: hidden; }
 
 /* --- Main Content Area --- */
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    background-color: #2C2C2C;
-    padding: 12px; /* Increased from 10px */
+    background-color: #202030; /* Main content background */
+    padding: 20px; /* More padding */
+    overflow-x: hidden;
 }
-
-.header { /* Main window title bar appearance */
-    background-color: #404040; /* Dark title bar */
-    color: #E0E0E0;
-    padding: 8px 13px; /* Increased from 6px 10px */
+.header {
+    background-color: #3A3A50; /* Header background */
+    color: #FFFFFF;
+    padding: 12px 20px; /* More padding */
     text-align: center;
-    font-size: 20px; /* Increased from 16px */
-    font-weight: bold;
-    border-bottom: 1px solid #181818;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
-    height: 38px; /* Increased from 30px */
+    font-size: 24px; /* Larger font */
+    font-weight: 700; /* Bolder */
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    text-shadow: 0 2px 3px rgba(0,0,0,0.4);
+    height: 60px; /* Taller header */
     box-sizing: border-box;
+    flex-shrink: 0;
+    border-radius: 6px; /* Subtle rounded corners */
+    margin-bottom: 20px;
 }
-
 .status-bar {
-    background-color: #353535;
-    color: #C0C0C0;
-    padding: 6px 12px; /* Increased from 5px 10px */
-    font-size: 14px; /* Increased from 11px */
-    border-top: 1px solid #4A4A4A;
-    border-bottom: 1px solid #202020;
+    background-color: #2A2A40; /* Status bar background */
+    color: #C0C0D0;
+    padding: 10px 15px; /* More padding */
+    font-size: 14px;
+    border: 1px solid rgba(0,0,0,0.2); /* Soft border */
+    border-radius: 6px; /* Rounded corners */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 12px; /* Increased from 10px */
-    margin-bottom: 12px; /* Increased from 10px */
+    flex-wrap: wrap;
+    gap: 15px; /* More gap */
+    margin-top: 0; /* Align with header */
+    margin-bottom: 20px; /* More spacing */
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.status-left-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px; /* More gap */
 }
 .status-bar select {
     font-family: inherit;
-    font-size: 14px; /* Increased from 11px */
-    margin-left: 6px; /* Increased from 5px */
-    border: 1px solid;
-    border-color: #202020 #585858 #585858 #202020; /* Inset */
-    background-color: #282828;
-    color: #D1D1D1;
-    border-radius: 3px;
-    padding: 3px 4px; /* Increased from 2px 3px */
+    font-size: 14px;
+    margin-left: 8px; /* More spacing */
+    border: 1px solid #404050;
+    background-color: #252535;
+    color: #E0E0F0;
+    border-radius: 5px;
+    padding: 5px 8px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+.status-bar select:focus {
+    border-color: #7A9BFF;
+    background-color: #2C2C42;
+    outline: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 0 0 3px rgba(122,155,255,0.3);
 }
 .status-bar .data-value {
     font-weight: bold;
-    font-family: "Monaco", "Courier New", Courier, monospace;
-    color: #7FB0E8; /* Muted blue */
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    color: #9BBFFF; /* Lighter accent blue */
 }
 #esp32-connection-status { font-weight: bold; }
-.esp32-connected { color: #77DD77; /* Light green */ }
-.esp32-disconnected { color: #FF8080; /* Light red */ }
-.esp32-unknown { color: #FFB347; /* Light orange */ }
-#systemStatus { margin-left: 18px; font-style: italic; color: #999; } /* Increased from 15px */
+.esp32-connected { color: #77DD77; }
+.esp32-disconnected { color: #FF7070; }
+.esp32-unknown { color: #FFD700; } /* Gold for unknown */
+#systemStatus { margin-left: 20px; font-style: italic; color: #A0A0B0; }
 
-
-/* --- Tables --- */
-table#shutterDataTable, table#resultsLogTable {
-    border: 1px solid;
-    border-color: #505050 #202020 #202020 #505050; /* Outset border for table */
+/* --- Tables (General) --- */
+table {
+    border: none; /* Remove outer border */
     border-collapse: separate;
     border-spacing: 0;
-    background-color: #3A3A3A; /* Dark table background */
-    margin: 12px auto; /* Increased from 10px */
-    width: 98%;
-    max-width: 900px; /* Max width can remain, page will scale */
-    border-radius: 4px; /* Classic Mac had slightly rounded table corners */
+    background-color: #2A2A40; /* Table background */
+    margin: 20px auto; /* More margin */
+    width: 100%;
+    max-width: 900px;
+    border-radius: 8px; /* More rounded */
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4); /* Soft shadow */
+    overflow: hidden; /* Ensures rounded corners apply to content */
 }
-table#shutterDataTable {
-    table-layout: fixed; /* Added for column alignment */
-}
-
-table#shutterDataTable caption, table#resultsLogTable caption {
-    font-size: 18px; /* Increased from 14px */
-    font-weight: bold;
-    padding: 10px; /* Increased from 8px */
-    color: #E0E0E0;
-    text-align: left;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
-    border-bottom: 1px solid #2A2A2A;
-}
-
-#shutterDataTable th, #shutterDataTable td,
-#resultsLogTable th, #resultsLogTable td {
-    border: none;
-    border-bottom: 1px solid #2F2F2F; /* Separator lines */
-    padding: 6px 10px; /* Increased from 5px 8px */
-    font-size: 14px; /* Increased from 11px */
-    vertical-align: middle;
-    color: #D1D1D1;
-}
-
-/* Column width definitions for shutterDataTable */
-#shutterDataTable th:nth-child(1), /* First column (metric labels) */
-#shutterDataTable td:nth-child(1) {
-    width: 25%;
-}
-#shutterDataTable th:nth-child(n+2), /* Columns 2 through 7 */
-#shutterDataTable td:nth-child(n+2) {
-    width: 12.5%; /* 75% / 6 columns = 12.5% each */
-}
-
-/* Text alignment overrides and specific styles */
-#shutterDataTable th { /* All table headers in shutterDataTable */
-    background-color: #454545; /* Darker header */
+table caption {
+    font-size: 20px; /* Larger caption */
+    font-weight: 600;
+    padding: 15px; /* More padding */
     color: #FFFFFF;
-    font-weight: bold;
-    text-align: center; /* Default for headers */
-    border-bottom: 1px solid #1A1A1A; /* Stronger separator */
-    border-top: 1px solid #5A5A5A; /* Top bevel for header */
-}
-
-#shutterDataTable th:first-child, /* Common styles for first-child headers and metric-label data cells */
-#shutterDataTable td.metric-label { /* Cells with metric-label class */
-    font-weight: bold;
-    /* text-align: left; <-- Removed to allow th:first-child to be centered */
-    background-color: #404040; /* Slightly different for label column */
-    border-right: 1px solid #2F2F2F;
-    color: #E8E8E8;
-}
-
-/* Ensure metric-label data cells (td) remain left-aligned */
-#shutterDataTable td.metric-label {
     text-align: left;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    background-color: #3A3A50; /* Caption background */
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+table th, table td {
+    border-bottom: 1px solid #353550; /* Softer internal borders */
+    padding: 10px 15px; /* More padding */
+    font-size: 14px;
+    vertical-align: middle;
+    color: #E0E0F0;
+    word-wrap: break-word;
+}
+table th {
+    background-color: #404060; /* Header background */
+    color: #FFFFFF;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.05); /* Subtle highlight */
+}
+table tr:last-child td { border-bottom: none; }
+table tbody tr:nth-child(even) td { background-color: #25253A; } /* Slightly different stripe color */
+
+
+/* --- Shutter Data Table Specifics (#shutterDataTable, #bucketDeepDiveTable) --- */
+#shutterDataTable, #bucketDeepDiveTable { table-layout: fixed; }
+
+#shutterDataTable th:nth-child(1), #shutterDataTable td:nth-child(1),
+#bucketDeepDiveTable th:nth-child(1), #bucketDeepDiveTable td:nth-child(1) { width: 25%; }
+
+#shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2),
+#bucketDeepDiveTable th:nth-child(n+2), #bucketDeepDiveTable td:nth-child(n+2) { width: 12.5%; }
+
+#shutterDataTable th:first-child, #shutterDataTable td.metric-label,
+#bucketDeepDiveTable th:first-child, #bucketDeepDiveTable td.metric-label {
+    font-weight: bold;
+    background-color: #3A3A50 !important; /* Ensure override for striped rows */
+    border-right: 1px solid #353550;
+    color: #FFFFFF;
+}
+#shutterDataTable td.metric-label, #bucketDeepDiveTable td.metric-label { text-align: left; }
+
+#shutterDataTable td:not(.metric-label):not(.compare-value):not(.data-value),
+#bucketDeepDiveTable td:not(.metric-label):not(.compare-value):not(.data-value) { text-align: right; }
+
+#shutterDataTable tbody tr:nth-child(even) td.metric-label,
+#bucketDeepDiveTable tbody tr:nth-child(even) td.metric-label { background-color: #303045 !important; }
+
+
+#shutterDataTable .section-header, #bucketDeepDiveTable .section-header {
+    background-color: #2A2A40; color: #E0E0F0; font-weight: 600; text-align: center; font-size: 15px;
+    border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+#shutterDataTable .section-header select, #bucketDeepDiveTable .section-header select {
+    font-family: inherit; font-size: 13px; margin-left: 15px; border: 1px solid #404050;
+    background-color: #252535; color: #E0E0F0; border-radius: 5px; padding: 3px 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+#shutterDataTable .data-value, #bucketDeepDiveTable .data-value {
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; font-weight: bold; color: #9BBFFF; text-align: center !important;
+}
+#shutterDataTable .compare-value, #shutterDataTable th.compare-header,
+#bucketDeepDiveTable .compare-value, #bucketDeepDiveTable th.compare-header {
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; text-align: center; font-size: 13px; color: #A0A0B0;
+}
+.compare-value-high-variance { color: #FF7070 !important; font-weight: bold; }
+.compare-value-low-variance { color: #77DD77 !important; }
+
+
+.error-message { color: #FF7070; font-weight: bold; margin-top: 15px; font-size: 14px;}
+#error-display { text-align:center; margin-top:20px; padding: 10px; color: #FF7070; background-color: #402020; border-radius: 6px;}
+.footer {
+    text-align: center; font-size: 13px; margin-top: auto; color: #A0A0B0; padding: 15px;
+    background-color: #2A2A40; border-top: 1px solid rgba(0,0,0,0.2); flex-shrink: 0;
+    border-radius: 0 0 8px 8px; /* Match page-container bottom radius */
 }
 
-#shutterDataTable td:not(.metric-label):not(.compare-value):not(.data-value) { /* Generic td cells default to right */
+/* --- Tab Navigation --- */
+.tab-navigation {
+    margin: 20px auto 0; width: 100%; max-width: 900px; padding-bottom: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.2); display: flex; height: 40px; flex-shrink: 0; box-sizing: border-box;
+}
+.tab-button {
+    padding: 8px 20px 9px 20px; /* More padding */
+    cursor: pointer; border: none;
+    background-color: #3A3A50; /* Tab background */
+    font-family: inherit; font-size: 16px; margin-right: 5px; /* More margin */
+    border-radius: 8px 8px 0 0; /* More rounded */
+    color: #C0C0D0; position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+.tab-button:hover { background-color: #4A4A60; color: #E0E0F0; }
+.tab-button.active {
+    background-color: #2A2A40; /* Active tab background */
+    color: #FFFFFF; font-weight: 600; z-index: 1; padding-bottom: 11px; margin-bottom: -1px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+.tab-content {
+    display: none; padding: 20px; background: #2A2A40; /* Tab content background */
+    border: 1px solid rgba(0,0,0,0.2);
+    border-top: none;
+    border-radius: 0 0 8px 8px; /* Match table radius */
+    margin: 0 auto 20px auto; width: 100%;
+    max-width: 900px; box-sizing: border-box; flex-grow: 1; overflow-y: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+.tab-content.active { display: block; }
+div.tab-content, .bucket-expanded-content { overflow-x: auto; }
+
+
+/* --- Results Log Tab & Bucket Specifics --- */
+#resultsLogTable th, #resultsLogTable td { padding: 8px 12px; font-size: 13px; }
+#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%; text-align: center;}
+#resultsLogTable th:nth-child(2), #resultsLogTable td:nth-child(2) { width: 10%; text-align: center;}
+#resultsLogTable th:nth-child(3), #resultsLogTable td:nth-child(3) { width: 8%; text-align: center;}
+#resultsLogTable th:last-child, #resultsLogTable td:last-child { width: 8%; text-align: center;}
+#resultsLogTable th:nth-child(n+4):not(:last-child),
+#resultsLogTable td:nth-child(n+4):not(:last-child) { text-align: right; font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; }
+
+.action-button {
+    background: linear-gradient(180deg, #5A5A70, #4A4A60);
+    border: none;
+    color: #E0E0F0;
+    border-radius: 5px;
+    padding: 6px 12px; /* More padding */
+    font-size: 13px;
+    cursor: pointer; margin: 0 4px; /* More margin */
+    line-height: 1.2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+.action-button:hover { background: linear-gradient(180deg, #6A6AA0, #5A5A80); box-shadow: 0 3px 6px rgba(0,0,0,0.4); }
+.action-button:active {
+    background: linear-gradient(180deg, #4A4A60, #5A5A70);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4) inset;
+    transform: translateY(1px);
+}
+.action-button.danger {
+    background: linear-gradient(180deg, #C04040, #A03030);
+    color: #FFFFFF;
+}
+.action-button.danger:hover { background: linear-gradient(180deg, #D05050, #B04040); }
+.action-button.danger:active { background: linear-gradient(180deg, #A03030, #C04040); }
+
+.action-button.primary {
+    background: linear-gradient(180deg, #7A9BFF, #6A8BE0);
+    color: #FFFFFF;
+}
+.action-button.primary:hover { background: linear-gradient(180deg, #8ABFFF, #7A9BFF); }
+.action-button.primary:active { background: linear-gradient(180deg, #6A8BE0, #7A9BFF); }
+
+
+.bucket-creation-area {
+    margin: 20px 0; padding: 15px; background-color: #303045; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px;
+    display: flex; gap: 15px; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+#bucketNameInputStaging {
+    flex-grow: 1; padding: 8px 12px; font-size: 14px; background-color: #252535; color: #E0E0F0;
+    border: 1px solid #404050; border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+}
+#bucketNameInputStaging:focus {
+    border-color: #7A9BFF;
+    background-color: #2C2C42;
+    outline: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 3px rgba(122,155,255,0.3);
+}
+#createBucketButton { padding: 8px 15px; font-size: 14px; }
+
+#savedBucketsContainer {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Adjusted for 2-column, slightly wider */
+    gap: 20px; /* More gap */
+}
+.bucket-item {
+    background-color: #303045; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.bucket-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+}
+.bucket-header {
+    padding: 12px 18px; /* More padding */
+    background-color: #3A3A50; border-bottom: 1px solid rgba(0,0,0,0.2);
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    border-radius: 8px 8px 0 0;
+}
+.bucket-header h5 {
+    margin: 0; color: #FFFFFF; font-size: 17px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;
+}
+.bucket-info { font-size: 12px; color: #A0A0B0; margin-left: 15px; white-space: nowrap; }
+.bucket-actions button { margin-left: 8px; padding: 4px 10px; font-size: 12px;}
+
+.bucket-summary-averages {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; /* More gap */
+}
+.average-grid-item {
+    background-color: #25253A;
+    padding: 8px; /* More padding */
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.2);
+    font-size: 13px;
+}
+.average-grid-item .label {
+    display: block;
+    color: #C0C0D0;
+    margin-bottom: 5px;
+}
+.average-grid-item .value {
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    color: #9BBFFF;
+    font-weight: bold;
+    display: block;
     text-align: right;
 }
 
 
-#shutterDataTable tr:last-child td,
-#resultsLogTable tr:last-child td {
-    border-bottom: none;
+.bucket-expanded-content {
+    padding: 0 15px 15px 15px; border-top: 1px solid rgba(0,0,0,0.2); display: none;
+    max-height: 350px; overflow-y: auto; /* Slightly taller */
 }
+.bucket-item.expanded .bucket-expanded-content { display: block; }
+.bucket-details-table { margin-top: 10px !important; }
+.bucket-details-table th, .bucket-details-table td { font-size: 12px; padding: 6px 8px; }
+.bucket-details-table th:last-child, .bucket-details-table td:last-child { width: 10%; }
 
-/* General header styling for resultsLogTable */
-#resultsLogTable th {
-    background-color: #454545;
-    color: #FFFFFF;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 1px solid #1A1A1A;
-    border-top: 1px solid #5A5A5A;
-}
-
-/* Classic Mac OS 9 style striped rows */
-#shutterDataTable tbody tr:nth-child(even) td,
-#resultsLogTable tbody tr:nth-child(even) td {
-    background-color: #353535;
-}
-#shutterDataTable tbody tr:nth-child(even) td.metric-label {
-    background-color: #3B3B3B;
-}
+.staging-row.dragging { opacity: 0.6; background-color: #4A4A60; transform: scale(0.98); }
+.bucket-item.drag-over .bucket-header { border: 2px dashed #9BBFFF; background-color: #384060; }
 
 
-#shutterDataTable .section-header {
-    background-color: #2A2A2A; /* Very dark section header */
-    color: #E0E0E0;
-    font-weight: bold;
-    text-align: center;
-    font-size: 15px; /* Increased from 12px */
-    border-top: 1px solid #404040;
-    border-bottom: 1px solid #181818;
+@media (max-width: 1024px) {
+    .page-container { margin: 15px; max-width: calc(100% - 30px); }
+    .config-panel { width: 250px; }
+    #savedBucketsContainer { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
 }
-#shutterDataTable .section-header select {
-    font-family: inherit;
-    font-size: 13px; /* Increased from 10px */
-    margin-left: 12px; /* Increased from 10px */
-    border: 1px solid #181818;
-    background-color: #303030;
-    color: #C0C0C0;
-    border-radius: 3px;
-}
-#shutterDataTable .data-value { /* For cells displaying primary calculated data */
-    font-family: "Monaco", "Courier New", Courier, monospace;
-    font-weight: bold;
-    color: #7FB0E8; /* Muted blue */
-    text-align: right; /* Data values are right-aligned */
-}
-#shutterDataTable .compare-value, /* For cells showing comparison percentages/symbols */
-#shutterDataTable th.compare-header { /* For headers above comparison columns */
-    font-family: "Monaco", "Courier New", Courier, monospace;
-    text-align: center;
-    font-size: 13px; /* Increased from 10px */
-    color: #A0A0A0;
-}
-
-/* Center align specific data-value cells in the "Curtain Travel Times" section */
-#shutterDataTable #exp_ms_s1,
-#shutterDataTable #exp_ms_s2,
-#shutterDataTable #exp_ms_s3,
-#shutterDataTable #exp_ms_avg,
-#shutterDataTable #hz_s1,
-#shutterDataTable #hz_s2,
-#shutterDataTable #hz_s3,
-#shutterDataTable #hz_avg,
-#shutterDataTable #ct_c1_s1s2_time,
-#shutterDataTable #ct_c1_s2s3_time,
-#shutterDataTable #ct_c1_total_time,
-#shutterDataTable #ct_c2_s1s2_time,
-#shutterDataTable #ct_c2_s2s3_time,
-#shutterDataTable #ct_c2_total_time {
-    text-align: center;
-}
-
-.compare-value-high-variance { color: #FF8080 !important; font-weight: bold; }
-.compare-value-low-variance { color: #77DD77 !important; }
-
-
-.error-message { color: #FF8080; font-weight: bold; margin-top: 12px; font-size: 14px;} /* Increased from 10px, 11px */
-#error-display { text-align:center; margin-top:18px; padding: 6px; color: #FF8080;} /* Increased from 15px, 5px */
-
-
-.footer {
-    text-align: center;
-    font-size: 13px; /* Increased from 10px */
-    margin-top: auto;
-    color: #909090;
-    padding: 13px; /* Increased from 10px */
-    background-color: #252525; /* Dark footer */
-    border-top: 1px solid #3A3A3A;
-}
-
-/* --- Tab Navigation (Classic Mac OS 9 style) --- */
-.tab-navigation {
-    margin: 12px auto 0; /* Increased from 10px */
-    width: 98%;
-    max-width: 900px; /* Max width can remain */
-    padding-bottom: 0;
-    border-bottom: 1px solid #1A1A1A; /* Dark underline for tabs */
-    display: flex;
-    height: 33px; /* Increased from 26px */
-}
-.tab-button {
-    padding: 5px 15px 6px 15px; /* Increased from 4px 12px 5px 12px */
-    cursor: pointer;
-    border: 1px solid;
-    border-color: #5A5A5A #2A2A2A #2A2A2A #5A5A5A; /* Outset bevel */
-    border-bottom: none;
-    background-color: #404040; /* Default tab color */
-    font-family: inherit;
-    font-size: 15px; /* Increased from 12px */
-    margin-right: 3px; /* Increased from 2px */
-    border-radius: 4px 4px 0 0; /* Rounded top */
-    color: #C0C0C0;
-    position: relative;
-    box-shadow: 0 1px 0px rgba(255,255,255,0.05) inset;
-}
-.tab-button:hover {
-    background-color: #484848;
-    color: #DCDCDC;
-}
-.tab-button.active {
-    background-color: #3A3A3A; /* Matches content area */
-    border-color: #5A5A5A #202020 #3A3A3A #5A5A5A; /* Border connects to content */
-    color: #FFFFFF;
-    font-weight: bold;
-    z-index: 1;
-    padding-bottom: 8px; /* Increased from 6px */
-    margin-bottom: -1px; /* Pull up to cover main border */
-}
-.tab-content {
-    display: none;
-    padding: 13px; /* Increased from 10px */
-    background: #3A3A3A; /* Match active tab */
-    border: 1px solid;
-    border-color: #5A5A5A #202020 #202020 #5A5A5A; /* Outset border for content */
-    border-top: none; /* Top covered by tab nav */
-    border-radius: 0 0 4px 4px; /* Rounded bottom */
-    margin-bottom: 12px; /* Increased from 10px */
-}
-.tab-content.active { display: block; }
-
-/* Results Log Table Specifics */
-#resultsLogTable th, #resultsLogTable td { padding: 5px 8px; font-size: 13px; } /* Increased from 4px 6px, 10px */
-#resultsLogTable th:nth-child(1), #resultsLogTable td:nth-child(1) { width: 5%;} /* ID column */
-#resultsLogTable th:nth-child(n+4), #resultsLogTable td:nth-child(n+4) { text-align: right; } /* Numerical data right aligned */
-#resultsLogTable td:nth-child(n+4) { font-family: "Monaco", "Courier New", Courier, monospace; }
-
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-    body { font-size: 14px; } /* Increased from 11px, effectively making mobile slightly larger too */
-    .page-container { flex-direction: column; }
-    .config-panel { width: 100%; border-right: none; border-bottom: 1px solid #1A1A1A; }
-    .config-panel.collapsed h3 { opacity: 1; max-width: 100%; pointer-events: auto; }
-    .header { font-size: 18px; border-radius: 0;} /* Increased from 14px */
-    .status-bar { flex-direction: column; align-items: flex-start; font-size: 13px; } /* Increased from 10px */
-    table#shutterDataTable, table#resultsLogTable { width: 100%; max-width: 100%; border-radius: 0; table-layout: auto; }
+    body { font-size: 14px; }
+    .page-container { flex-direction: column; margin: 0; border-radius: 0; max-width: 100%; width: 100%; }
+    .config-panel { width: 100%; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.2); max-height: 50vh; overflow-y: auto; border-radius: 0;}
+    .config-panel.collapsed { width: 100%; max-height: 50px; }
+    .config-panel.collapsed h3 { opacity: 1; max-width: calc(100% - 60px); pointer-events: auto; }
+    .config-panel.collapsed #toggleConfigButton { margin-left: 10px; }
+    .main-content { padding: 15px; }
+    .header { font-size: 20px; border-radius: 0; margin-bottom: 15px; height: auto; padding: 10px 15px;}
+    .status-bar { flex-direction: column; align-items: flex-start; font-size: 13px; margin-bottom: 15px; border-radius: 0; padding: 10px 15px;}
+    .status-left-group { gap: 10px; }
+    #systemStatus { margin-left: 0; margin-top: 8px; }
+    table { width: 100%; max-width: 100%; border-radius: 0; table-layout: auto; font-size: 0.9em; margin: 15px auto;}
+    table th, table td { padding: 8px; font-size: inherit; white-space: normal; }
     #shutterDataTable th:nth-child(1), #shutterDataTable td:nth-child(1),
-    #shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2) {
-        width: auto; /* Reset fixed widths for responsive */
-    }
-    #shutterDataTable th, #shutterDataTable td,
-    #resultsLogTable th, #resultsLogTable td { padding: 4px; font-size: 0.9em; white-space: normal; } /* Padding slightly increased */
-    .tab-navigation { width: 100%; height: auto; }
-    .tab-button { padding: 6px 10px; font-size: 14px; } /* Increased from 5px 8px, 11px */
+    #shutterDataTable th:nth-child(n+2), #shutterDataTable td:nth-child(n+2),
+    #bucketDeepDiveTable th:nth-child(1), #bucketDeepDiveTable td:nth-child(1),
+    #bucketDeepDiveTable th:nth-child(n+2), #bucketDeepDiveTable td:nth-child(n+2) { width: auto; }
+
+    #shutterDataTable td.metric-label, #bucketDeepDiveTable td.metric-label { font-weight: bold; background-color: #303045 !important; }
+    #shutterDataTable tbody tr:nth-child(even) td.metric-label,
+    #bucketDeepDiveTable tbody tr:nth-child(even) td.metric-label { background-color: #2A2A40 !important; }
+
+    .tab-navigation { width: 100%; height: auto; flex-wrap: wrap; margin-top: 15px;}
+    .tab-button { padding: 10px 12px; font-size: 14px; margin-bottom: 2px; border-radius: 6px 6px 0 0;}
+    .tab-content { border-radius:0; padding: 15px; margin-bottom: 15px;}
+    .footer { font-size: 12px; padding: 12px; border-radius: 0;}
+    .bucket-creation-area { flex-direction: column; align-items: stretch; margin: 15px 0; padding: 12px;}
+    .bucket-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 15px;}
+    .bucket-actions { width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;}
+    .bucket-actions button { font-size: 11px; padding: 4px 8px;}
+    #savedBucketsContainer { grid-template-columns: 1fr; gap: 15px; margin-top: 20px;}
+    .bucket-summary-averages { grid-template-columns: repeat(2, 1fr); } /* Adjust for smaller screens */
+}
+@media (max-width: 480px) {
+    table th, table td { font-size: 0.8em; padding: 6px; }
+    .tab-button { font-size: 13px; padding: 8px 10px; }
+    .config-panel { font-size: 13px; }
+    .config-panel input, .config-panel select, .config-panel .data-value { font-size: 13px; }
+    .bucket-summary-averages { grid-template-columns: 1fr; } /* 1 column on very small */
 }
 
-/* Classic Mac OS 9 Scrollbars (WebKit only, very hard to replicate perfectly) */
-::-webkit-scrollbar {
-    width: 20px; /* Increased from 16px */
-    height: 20px; /* Increased from 16px */
+/* Modern Scrollbar Styling */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #202030; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background-color: #5A5A70; border-radius: 10px; border: 3px solid #202030; }
+::-webkit-scrollbar-thumb:hover { background-color: #6A6AA0; }
+::-webkit-scrollbar-corner { background: #202030; }
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7); /* Darker, slightly more opaque */
+    backdrop-filter: blur(3px); /* Subtle blur effect */
+    display: none; justify-content: center; align-items: center; z-index: 1000;
 }
-::-webkit-scrollbar-track {
-    background: #282828; /* Dark track */
-    border: 1px solid #1F1F1F;
+.modal-content {
+    background-color: #2A2A40; /* Modal background */
+    padding: 30px; /* More padding */
+    border-radius: 10px; /* More rounded */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.6); /* Stronger, softer shadow */
+    border: 1px solid rgba(0,0,0,0.3);
+    text-align: center; min-width: 350px; max-width: 90%;
 }
-::-webkit-scrollbar-thumb {
-    background-color: #505050;
-    border: 1px solid;
-    border-color: #6A6A6A #3A3A3A #3A3A3A #6A6A6A; /* Bevel */
-    border-radius: 2px;
+.modal-content p { margin-top: 0; margin-bottom: 25px; color: #E0E0F0; font-size: 17px; line-height: 1.5; }
+.modal-buttons button { margin: 0 12px; padding: 10px 20px; font-size: 15px; }
+#bucketNameInputModal {
+    width: calc(100% - 24px); padding: 10px; margin-bottom: 20px; font-size: 15px;
+    background-color: #202030; color: #E0E0F0; border: 1px solid #404050; border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
 }
-::-webkit-scrollbar-thumb:hover {
-    background-color: #585858;
+#bucketNameInputModal:focus {
+    border-color: #7A9BFF;
+    background-color: #2C2C42;
+    outline: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 3px rgba(122,155,255,0.3);
 }
-::-webkit-scrollbar-button { /* Square buttons with arrows */
-    background-color: #484848;
-    border: 1px solid;
-    border-color: #606060 #303030 #303030 #606060;
-    border-radius: 2px;
-    display: block; /* Make them visible */
-    height: 20px; /* Increased from 16px */
-    width: 20px; /* Increased from 16px */
-}
-/* Arrows (using pseudo-elements, very basic) */
-::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A0A0A0'><polygon points='6,3 3,9 9,9'/></svg>"); background-repeat: no-repeat; background-position: center center; } /* Arrow size slightly increased */
-::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A0A0A0'><polygon points='6,9 3,3 9,3'/></svg>"); background-repeat: no-repeat; background-position: center center; } /* Arrow size slightly increased */
-/* Horizontal scrollbar buttons would need different arrows */

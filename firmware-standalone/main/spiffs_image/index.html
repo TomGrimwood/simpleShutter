@@ -2,14 +2,16 @@
 <html>
 <head>
     <title>Precision Shutter Diag.</title>
-    <meta charset="UTF-8"> <!-- Changed to UTF-8 -->
-    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="PSD"> <!-- Optional: Short name for Home screen -->
+    <meta name="apple-mobile-web-app-title" content="PSD">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black"> <!-- Options: default, black, black-translucent -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
 </head>
 
 <body>
@@ -23,11 +25,11 @@
         <div id="configPanelContent">
             <div>
                 <label for="totalSensorDistanceConfig">Measured Sensor Range (mm)</label>
-                <input type="number" id="totalSensorDistanceConfig" value="30" step="0.1"> <!-- Default to 24mm (Full Frame example) -->
+                <input type="number" id="totalSensorDistanceConfig" value="30" step="0.1">
             </div>
             <div>
                 <label for="calibrationTargetDistanceConfig">Calibration Distance (mm):</label>
-                <input type="number" id="calibrationTargetDistanceConfig" value="32" step="0.1"> <!-- Default to same if no specific cal target -->
+                <input type="number" id="calibrationTargetDistanceConfig" value="32" step="0.1">
             </div>
             <div>
                 <label>Time Scaling Factor:</label>
@@ -59,6 +61,7 @@
         <div class="tab-navigation">
             <button class="tab-button active" data-tab-id="mainTableTab">Main Analysis</button>
             <button class="tab-button" data-tab-id="resultsLogTab">Results Log</button>
+            <button class="tab-button" data-tab-id="bucketDeepDiveTab">Bucket Deep Dive</button>
         </div>
 
         <div id="mainTableTabContent" class="tab-content active">
@@ -87,10 +90,8 @@
                     <tr>
                         <td class="metric-label">Shutter Speed (Hz)</td>
                         <td id="hz_s1" class="data-value">---</td>
-                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
-                        <td id="hz_s2" class="data-value">---</td>
-                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
-                        <td id="hz_s3" class="data-value">---</td>
+                        <td class="compare-value"></td> <td id="hz_s2" class="data-value">---</td>
+                        <td class="compare-value"></td> <td id="hz_s3" class="data-value">---</td>
                         <td id="hz_avg" class="data-value">---</td>
                     </tr>
 
@@ -112,8 +113,7 @@
                     <tr>
                         <td class="metric-label" style="font-size:8pt;">C1 vs C2 Diff %</td>
                         <td colspan="2" id="ct_c1c2_s1s2_compare_pct" class="compare-value">---</td>
-                        <td class="compare-value"></td> <!-- Placeholder for alignment -->
-                        <td colspan="2" id="ct_c1c2_s2s3_compare_pct" class="compare-value">---</td>
+                        <td class="compare-value"></td> <td colspan="2" id="ct_c1c2_s2s3_compare_pct" class="compare-value">---</td>
                         <td id="ct_c1c2_total_compare_pct" class="compare-value">---</td>
                     </tr>
                     <tr>
@@ -166,8 +166,13 @@
         </div>
 
         <div id="resultsLogTabContent" class="tab-content">
+            <div class="bucket-creation-area">
+                <input type="text" id="bucketNameInputStaging" placeholder="Enter bucket name...">
+                <button id="createBucketButton" class="action-button primary">Create Bucket from Staging</button>
+            </div>
+
             <table id="resultsLogTable">
-                <caption>Recent Results Log</caption>
+                <caption>Staging Area: Recent Unbucketed Results (<span id="stagingCount">0</span>)</caption>
                 <thead>
                     <tr>
                         <th>#</th>
@@ -179,24 +184,119 @@
                         <th>Avg Speed (Hz)</th>
                         <th>C1 Total (ms)</th>
                         <th>C2 Total (ms)</th>
-                        <th>FullOpen (ms)</th> <!-- New Column -->
+                        <th>FullOpen (ms)</th>
                         <th>Slit (mm)</th>
                         <th>Exp Var (%)</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Log rows will be inserted here by JavaScript -->
+                    </tbody>
+            </table>
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="clearStagingButton" class="action-button danger" title="Clear all entries from the staging area">Clear Staging Area</button>
+            </div>
+
+            <div id="savedBucketsContainer">
+                </div>
+        </div>
+
+        <div id="bucketDeepDiveTabContent" class="tab-content">
+            <h4 id="deepDiveBucketName" style="text-align:center; color: #E0E0F0; margin-bottom: 5px;">Select a bucket for deep dive analysis</h4>
+            <table id="bucketDeepDiveTable">
+                <caption>Bucket Average Analysis</caption>
+                <tbody>
+                    <tr><td colspan="7" class="section-header">Exposure & Shutter Speed</td></tr>
+                    <tr>
+                        <th class="metric-label">Metric</th>
+                        <th>Sensor 1</th>
+                        <th class="compare-header">S1 vs S2</th>
+                        <th>Sensor 2</th>
+                        <th class="compare-header">S2 vs S3</th>
+                        <th>Sensor 3</th>
+                        <th>Average</th>
+                    </tr>
+                    <tr>
+                        <td id="dd_exp_ms_s1" class="data-value">---</td>
+                        <td id="dd_exp_compare_s1s2" class="compare-value">---</td>
+                        <td id="dd_exp_ms_s2" class="data-value">---</td>
+                        <td id="dd_exp_compare_s2s3" class="compare-value">---</td>
+                        <td id="dd_exp_ms_s3" class="data-value">---</td>
+                        <td id="dd_exp_ms_avg" class="data-value">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Shutter Speed (Hz)</td>
+                        <td id="dd_hz_s1" class="data-value">---</td>
+                        <td class="compare-value"></td> <td id="dd_hz_s2" class="data-value">---</td>
+                        <td class="compare-value"></td> <td id="dd_hz_s3" class="data-value">---</td>
+                        <td id="dd_hz_avg" class="data-value">---</td>
+                    </tr>
+
+                    <tr><td colspan="7" class="section-header">Curtain Travel Times & Comparison (ms, scaled)</td></tr>
+                    <tr>
+                        <th class="metric-label">Metric</th>
+                        <th colspan="2">S1 to S2</th>
+                        <th class="compare-header">% Var</th>
+                        <th colspan="2">S2 to S3</th>
+                        <th>S1 to S3</th>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Curtain 1 Travel</td>
+                        <td colspan="2" id="dd_ct_c1_s1s2_time" class="data-value">---</td>
+                        <td id="dd_ct_c1_intra_pct_var" class="compare-value">---</td>
+                        <td colspan="2" id="dd_ct_c1_s2s3_time" class="data-value">---</td>
+                        <td id="dd_ct_c1_total_time" class="data-value">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label" style="font-size:8pt;">C1 vs C2 Diff %</td>
+                        <td colspan="2" id="dd_ct_c1c2_s1s2_compare_pct" class="compare-value">---</td>
+                        <td class="compare-value"></td> <td colspan="2" id="dd_ct_c1c2_s2s3_compare_pct" class="compare-value">---</td>
+                        <td id="dd_ct_c1c2_total_compare_pct" class="compare-value">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Curtain 2 Travel</td>
+                        <td colspan="2" id="dd_ct_c2_s1s2_time" class="data-value">---</td>
+                        <td id="dd_ct_c2_intra_pct_var" class="compare-value">---</td>
+                        <td colspan="2" id="dd_ct_c2_s2s3_time" class="data-value">---</td>
+                        <td id="dd_ct_c2_total_time" class="data-value">---</td>
+                    </tr>
+
+                    <tr><td colspan="7" class="section-header">Analysis & Durations</td></tr>
+                    <tr>
+                        <td class="metric-label">Full Open Duration (ms)</td>
+                        <td id="dd_open_time_duration_ms" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Avg. Slit Width (mm)</td>
+                        <td id="dd_slit_width_mm" class="data-value" colspan="6">---</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-label">Exposure Variation (%)</td>
+                        <td id="dd_exp_var_pct" class="data-value" colspan="6">---</td>
+                    </tr>
                 </tbody>
             </table>
-             <div style="text-align: center; margin-top: 10px;">
-                <button onclick="if(window.clearResultsLog) window.clearResultsLog();" title="Clear all entries from the log table">Clear Log</button>
-            </div>
+             <p style="text-align:center; font-size:12px; color:#A0A0B0; margin-top:15px;">
+                This table shows the averaged values from the selected bucket. Raw sensor timestamps are not averaged.
+            </p>
         </div>
+
+
         <div class="footer">
             (c) 1998-2025 Tom Grimwood.
         </div>
-    </div> <!-- END main-content -->
-</div> <!-- END page-container -->
+    </div>
+</div>
+
+<div id="confirmationModal" class="modal-overlay">
+    <div class="modal-content">
+        <p id="modalMessageText">Are you sure?</p>
+        <div class="modal-buttons">
+            <button id="modalConfirmButton" class="action-button danger">Confirm</button>
+            <button id="modalCancelButton" class="action-button">Cancel</button>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript" src="/static/js/ui-helpers.js"></script>
 <script type="text/javascript" src="/static/js/shutter-calcs.js"></script>

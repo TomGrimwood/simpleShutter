@@ -1,39 +1,33 @@
-// data-updater.js - Enhanced for optimistic UI updates
+// data-updater.js
+// Depends on ui-helpers.js for DOM access, setText, formatRawTimestamp, updateSystemStatus
+// Depends on config-panel.js for getCurrentTimeScalingFactor
+// Depends on shutter-calcs.js for calculateAndDisplayComparison
+// Depends on results-log.js for addResultToStagingArea (or addResultToLog in original)
 
-// Helper to get a value from the config panel
+// Helper function to get a configuration value.
+// It now directly gets the element from the DOM.
 function getConfigValue(id, defaultValue) {
-    const element = document.getElementById(id);
-    if (element) {
+    const element = document.getElementById(id); // Get element directly by ID
+    if (element && element.value !== undefined) {
         const value = parseFloat(element.value);
         return isNaN(value) ? defaultValue : value;
     }
+    // Only log a warning if the element is genuinely not found,
+    // not just because DOM wasn't fully ready when DOM object was built.
+    // This warning might still fire if the ID is wrong or the element is truly missing.
+    // console.warn(`Config element ${id} not found.`);
     return defaultValue;
 }
 
-// Helper to show/hide table rows based on a condition
-// Assumes element is a cell (td) within the row to be shown/hidden
+// Helper function to set visibility of a row based on a cell's visibility
 function setRowVisibilityByCellId(cellId, visible) {
-    const cellElement = DOM[cellId] || document.getElementById(cellId);
-    if (cellElement && cellElement.parentElement && cellElement.parentElement.tagName === 'TR') {
-        cellElement.parentElement.style.display = visible ? '' : 'none';
-    } else if (cellElement) { // If it's a direct element not in a TR, hide element itself
-         cellElement.style.display = visible ? '' : 'none';
-    }
-}
-// Helper to show/hide a whole section (identified by a header cell)
-function setSectionVisibilityByHeaderId(headerCellId, visible) {
-     const headerElement = document.getElementById(headerCellId); // Assuming headers don't have DOM entries
-    if (headerElement && headerElement.parentElement && headerElement.parentElement.tagName === 'TR') {
-        let currentRow = headerElement.parentElement;
-        // Hide header row
-        currentRow.style.display = visible ? '' : 'none';
-        // Iterate to hide subsequent data rows until next section-header or end of table
-        currentRow = currentRow.nextElementSibling;
-        while(currentRow) {
-            if (currentRow.querySelector('.section-header')) break; // Stop at next section
-            currentRow.style.display = visible ? '' : 'none';
-            currentRow = currentRow.nextElementSibling;
-        }
+    // Use document.getElementById directly here as well for robustness
+    const cell = document.getElementById(cellId);
+    if (cell) {
+        const row = cell.closest('tr');
+        if (row) row.style.display = visible ? '' : 'none';
+    } else {
+        console.warn(`Cell element ${cellId} not found for row visibility.`);
     }
 }
 
@@ -41,36 +35,37 @@ function setSectionVisibilityByHeaderId(headerCellId, visible) {
 function updateShutterDisplay(rawData) {
     if (!rawData || typeof rawData.mode === 'undefined') {
         console.error("updateShutterDisplay: Invalid or missing rawData from ESP32.");
+        if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = '<p class="error-message">Error: Invalid data received from device.</p>';
         return;
     }
+
+    // Ensure necessary UI helper functions and DOM elements are available
+    // Reduced the number of checks here as the core issue was element retrieval in getConfigValue/setRowVisibility
+    if (typeof setText !== 'function' || typeof formatRawTimestamp !== 'function' || typeof updateSystemStatus !== 'function' ||
+        typeof calculateAndDisplayComparison !== 'function' || typeof addResultToStagingArea !== 'function' || typeof getCurrentTimeScalingFactor !== 'function' ||
+        !DOM.timestampUnitSelector || !DOM.errorDisplay || !DOM.sensorModeSelector) {
+        console.error("Data updater initialization failed: Missing core helper functions or critical DOM elements.");
+        if (DOM.errorDisplay) DOM.errorDisplay.innerHTML = '<p class="error-message">Error: UI components missing for display update.</p>';
+        return;
+    }
+
+
     const currentDisplayMode = String(rawData.mode).toUpperCase();
-
-    // --- Optimistic UI Structure Update based on Mode ---
-    // This section adjusts visibility of table parts based on the current mode,
-    // even if detailed data isn't available yet (e.g., during an optimistic update).
-
     const showS1 = (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER");
     const showS2 = (currentDisplayMode === "ALL" || currentDisplayMode === "INNER");
     const showS3 = (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER");
 
-    // Exposure & Shutter Speed Rows (first data row in each section)
-    setRowVisibilityByCellId('exp_ms_s1', true); // The row containing these cells
-    setRowVisibilityByCellId('hz_s1', true);
-
-    // Individual cells for S1, S2, S3 in Exposure/Hz tables
+    // Update visibility of table cells/rows based on mode
+    // Ensure DOM elements exist before trying to set style.visibility
     if (DOM.exp_ms_s1) DOM.exp_ms_s1.style.visibility = showS1 ? 'visible' : 'hidden';
     if (DOM.hz_s1) DOM.hz_s1.style.visibility = showS1 ? 'visible' : 'hidden';
     if (DOM.exp_compare_s1s2) DOM.exp_compare_s1s2.style.visibility = (showS1 && showS2) ? 'visible' : 'hidden';
-
     if (DOM.exp_ms_s2) DOM.exp_ms_s2.style.visibility = showS2 ? 'visible' : 'hidden';
     if (DOM.hz_s2) DOM.hz_s2.style.visibility = showS2 ? 'visible' : 'hidden';
     if (DOM.exp_compare_s2s3) DOM.exp_compare_s2s3.style.visibility = (showS2 && showS3) ? 'visible' : 'hidden';
-
     if (DOM.exp_ms_s3) DOM.exp_ms_s3.style.visibility = showS3 ? 'visible' : 'hidden';
     if (DOM.hz_s3) DOM.hz_s3.style.visibility = showS3 ? 'visible' : 'hidden';
 
-    // Curtain Travel Times section
-    // S1-S2 and S2-S3 segments are only for "ALL"
     const showAllSegments = currentDisplayMode === "ALL";
     if (DOM.ct_c1_s1s2_time) DOM.ct_c1_s1s2_time.style.visibility = showAllSegments ? 'visible' : 'hidden';
     if (DOM.ct_c1_intra_pct_var) DOM.ct_c1_intra_pct_var.style.visibility = showAllSegments ? 'visible' : 'hidden';
@@ -78,295 +73,234 @@ function updateShutterDisplay(rawData) {
     if (DOM.ct_c2_s1s2_time) DOM.ct_c2_s1s2_time.style.visibility = showAllSegments ? 'visible' : 'hidden';
     if (DOM.ct_c2_intra_pct_var) DOM.ct_c2_intra_pct_var.style.visibility = showAllSegments ? 'visible' : 'hidden';
     if (DOM.ct_c2_s2s3_time) DOM.ct_c2_s2s3_time.style.visibility = showAllSegments ? 'visible' : 'hidden';
-    
     if (DOM.ct_c1c2_s1s2_compare_pct) DOM.ct_c1c2_s1s2_compare_pct.style.visibility = showAllSegments ? 'visible' : 'hidden';
     if (DOM.ct_c1c2_s2s3_compare_pct) DOM.ct_c1c2_s2s3_compare_pct.style.visibility = showAllSegments ? 'visible' : 'hidden';
 
-    // Total S1-S3 travel is for "ALL" or "OUTER"
     const showTotalTravel = (currentDisplayMode === "ALL" || currentDisplayMode === "OUTER");
     if (DOM.ct_c1_total_time) DOM.ct_c1_total_time.style.visibility = showTotalTravel ? 'visible' : 'hidden';
     if (DOM.ct_c2_total_time) DOM.ct_c2_total_time.style.visibility = showTotalTravel ? 'visible' : 'hidden';
     if (DOM.ct_c1c2_total_compare_pct) DOM.ct_c1c2_total_compare_pct.style.visibility = showTotalTravel ? 'visible' : 'hidden';
 
-
-    // Raw Sensor Timestamps Rows
     setRowVisibilityByCellId('raw_s1', showS1);
     setRowVisibilityByCellId('raw_s2', showS2);
     setRowVisibilityByCellId('raw_s3', showS3);
 
-    // Clear previous client-side calculation errors
-    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) {
-        DOM.errorDisplay.innerHTML = '';
-    }
-    
-    const errors = []; 
+    // Clear previous errors if data is valid
+    if (DOM.errorDisplay && DOM.errorDisplay.innerHTML.includes("CLIENT CALC ERROR")) DOM.errorDisplay.innerHTML = '';
 
-    // --- 0. Get Configuration for Calculations ---
-    const timeScalingFactor = getCurrentTimeScalingFactor(); 
-
-    // --- 1. Raw times (already in µs from ESP32) ---
-    const s1_o_us = rawData.s1_open_us ?? null;
-    const s1_c_us = rawData.s1_close_us ?? null;
-    const s2_o_us = rawData.s2_open_us ?? null;
-    const s2_c_us = rawData.s2_close_us ?? null;
-    const s3_o_us = rawData.s3_open_us ?? null;
-    const s3_c_us = rawData.s3_close_us ?? null;
-
+    const errors = [];
+    const timeScalingFactor = getCurrentTimeScalingFactor();
+    const s1_o_us = rawData.s1_open_us ?? null, s1_c_us = rawData.s1_close_us ?? null;
+    const s2_o_us = rawData.s2_open_us ?? null, s2_c_us = rawData.s2_close_us ?? null;
+    const s3_o_us = rawData.s3_open_us ?? null, s3_c_us = rawData.s3_close_us ?? null;
     const selectedUnit = DOM.timestampUnitSelector.value;
-    // formatRawTimestamp now includes units, so setText does not need a unit parameter for these
-    setText('raw_s1', formatRawTimestamp(s1_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s1_c_us, selectedUnit));
-    setText('raw_s2', formatRawTimestamp(s2_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s2_c_us, selectedUnit));
-    setText('raw_s3', formatRawTimestamp(s3_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s3_c_us, selectedUnit));
 
-    // --- 2. Exposure Times (calculate in µs, then convert to ms for display) ---
-    const getExposureUs = (open_us, close_us) => (open_us != null && close_us != null && open_us > 0 && close_us > open_us) ? (close_us - open_us) : 0;
-    
+    // Ensure raw timestamp elements exist
+    if (DOM.raw_s1) setText('raw_s1', formatRawTimestamp(s1_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s1_c_us, selectedUnit));
+    if (DOM.raw_s2) setText('raw_s2', formatRawTimestamp(s2_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s2_c_us, selectedUnit));
+    if (DOM.raw_s3) setText('raw_s3', formatRawTimestamp(s3_o_us, selectedUnit) + ' / ' + formatRawTimestamp(s3_c_us, selectedUnit));
+
+
+    const getExposureUs = (o, c) => (o != null && c != null && o > 0 && c > o) ? (c - o) : 0;
     let exp_us_s1 = 0, exp_us_s2 = 0, exp_us_s3 = 0;
+    if (showS1) { exp_us_s1 = getExposureUs(s1_o_us, s1_c_us); if (s1_o_us > 0 && s1_c_us > 0 && s1_c_us <= s1_o_us) errors.push("S1: Close before/at open.");} // Removed != check, 0 is also a close before/at open state for non-zero open
+    if (showS2) { exp_us_s2 = getExposureUs(s2_o_us, s2_c_us); if (s2_o_us > 0 && s2_c_us > 0 && s2_c_us <= s2_o_us) errors.push("S2: Close before/at open.");}
+    if (showS3) { exp_us_s3 = getExposureUs(s3_o_us, s3_c_us); if (s3_o_us > 0 && s3_c_us > 0 && s3_c_us <= s3_o_us) errors.push("S3: Close before/at open.");}
 
-    if (showS1) {
-        exp_us_s1 = getExposureUs(s1_o_us, s1_c_us);
-        if (s1_o_us > 0 && s1_c_us > 0 && s1_c_us <= s1_o_us && s1_o_us !== s1_c_us) errors.push("S1: Close time before or at open time.");
-    }
-    if (showS2) {
-        exp_us_s2 = getExposureUs(s2_o_us, s2_c_us);
-        if (s2_o_us > 0 && s2_c_us > 0 && s2_c_us <= s2_o_us && s2_o_us !== s2_c_us) errors.push("S2: Close time before or at open time.");
-    }
-    if (showS3) {
-        exp_us_s3 = getExposureUs(s3_o_us, s3_c_us);
-        if (s3_o_us > 0 && s3_c_us > 0 && s3_c_us <= s3_o_us && s3_o_us !== s3_c_us) errors.push("S3: Close time before or at open time.");
-    }
-    
+
     const exp_ms_s1 = exp_us_s1 > 0 ? exp_us_s1 / 1000.0 : null;
     const exp_ms_s2 = exp_us_s2 > 0 ? exp_us_s2 / 1000.0 : null;
     const exp_ms_s3 = exp_us_s3 > 0 ? exp_us_s3 / 1000.0 : null;
+    if (DOM.exp_ms_s1) setText('exp_ms_s1', showS1 ? exp_ms_s1 : null, 3, ' ms');
+    if (DOM.exp_ms_s2) setText('exp_ms_s2', showS2 ? exp_ms_s2 : null, 3, ' ms');
+    if (DOM.exp_ms_s3) setText('exp_ms_s3', showS3 ? exp_ms_s3 : null, 3, ' ms');
+    if (DOM.exp_compare_s1s2) if (showS1 && showS2) calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2'); else setText('exp_compare_s1s2', '---');
+    if (DOM.exp_compare_s2s3) if (showS2 && showS3) calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3'); else setText('exp_compare_s2s3', '---');
 
-    setText('exp_ms_s1', showS1 ? exp_ms_s1 : null, 3, ' ms');
-    setText('exp_ms_s2', showS2 ? exp_ms_s2 : null, 3, ' ms');
-    setText('exp_ms_s3', showS3 ? exp_ms_s3 : null, 3, ' ms');
-    if (showS1 && showS2) calculateAndDisplayComparison(exp_ms_s1, exp_ms_s2, 'exp_compare_s1s2'); else setText('exp_compare_s1s2', null);
-    if (showS2 && showS3) calculateAndDisplayComparison(exp_ms_s2, exp_ms_s3, 'exp_compare_s2s3'); else setText('exp_compare_s2s3', null);
-
-    // --- 3. Shutter Speeds (Hz equivalent = 1 / exposure_seconds) ---
     const getHz = (exp_us) => (exp_us > 0) ? (1.0 / (exp_us / 1000000.0)) : null;
     const hz_s1_val = getHz(exp_us_s1);
     const hz_s2_val = getHz(exp_us_s2);
     const hz_s3_val = getHz(exp_us_s3);
+    if (DOM.hz_s1) setText('hz_s1', showS1 ? hz_s1_val : null, (isFinite(hz_s1_val) ? 2:undefined), ' Hz');
+    if (DOM.hz_s2) setText('hz_s2', showS2 ? hz_s2_val : null, (isFinite(hz_s2_val) ? 2:undefined), ' Hz');
+    if (DOM.hz_s3) setText('hz_s3', showS3 ? hz_s3_val : null, (isFinite(hz_s3_val) ? 2:undefined), ' Hz');
 
-    setText('hz_s1', showS1 ? hz_s1_val : null, (hz_s1_val !== null && isFinite(hz_s1_val)) ? 2 : undefined, ' Hz');
-    setText('hz_s2', showS2 ? hz_s2_val : null, (hz_s2_val !== null && isFinite(hz_s2_val)) ? 2 : undefined, ' Hz');
-    setText('hz_s3', showS3 ? hz_s3_val : null, (hz_s3_val !== null && isFinite(hz_s3_val)) ? 2 : undefined, ' Hz');
-
-    // --- 4. Average Exposure and Hz ---
     let validExposuresMs = [];
-    if (showS1 && exp_ms_s1 !== null) validExposuresMs.push(exp_ms_s1);
-    if (showS2 && exp_ms_s2 !== null) validExposuresMs.push(exp_ms_s2);
-    if (showS3 && exp_ms_s3 !== null) validExposuresMs.push(exp_ms_s3);
-    
-    let avgExpMs = null;
-    if (validExposuresMs.length > 0) {
-        avgExpMs = validExposuresMs.reduce((a, b) => a + b, 0) / validExposuresMs.length;
+    if (showS1 && exp_ms_s1 != null && exp_ms_s1 > 0) validExposuresMs.push(exp_ms_s1);
+    if (showS2 && exp_ms_s2 != null && exp_ms_s2 > 0) validExposuresMs.push(exp_ms_s2);
+    if (showS3 && exp_ms_s3 != null && exp_ms_s3 > 0) validExposuresMs.push(exp_ms_s3);
+    let avgExpMs = validExposuresMs.length > 0 ? validExposuresMs.reduce((a,b)=>a+b,0)/validExposuresMs.length : null;
+    if (DOM.exp_ms_avg) setText('exp_ms_avg', avgExpMs, 3, ' ms');
+
+    let validHzValues = [];
+    if (showS1 && hz_s1_val != null && isFinite(hz_s1_val)) validHzValues.push(hz_s1_val);
+    if (showS2 && hz_s2_val != null && isFinite(hz_s2_val)) validHzValues.push(hz_s2_val);
+    if (showS3 && hz_s3_val != null && isFinite(hz_s3_val)) validHzValues.push(hz_s3_val);
+    let avgHz = validHzValues.length > 0 ? validHzValues.reduce((a,b)=>a+b,0)/validHzValues.length : null;
+    if (DOM.hz_avg) setText('hz_avg', avgHz, 2, ' Hz');
+
+    let c1_s1s3=0, c2_s1s3=0, c1_s1s2=0, c1_s2s3=0, c2_s1s2=0, c2_s2s3=0;
+    if(showTotalTravel){
+        if(s1_o_us > 0 && s3_o_us > s1_o_us) c1_s1s3 = s3_o_us - s1_o_us; else if(s1_o_us > 0 && s3_o_us > 0) errors.push("C1: S3 open before S1 (total) or S3 open not detected."); // Adjusted error message
+        if(s1_c_us > 0 && s3_c_us > s1_c_us) c2_s1s3 = s3_c_us - s1_c_us; else if(s1_c_us > 0 && s3_c_us > 0) errors.push("C2: S3 close before S1 (total) or S3 close not detected."); // Adjusted error message
     }
-    setText('exp_ms_avg', avgExpMs, 3, ' ms');
-
-    let validHz = [];
-    function parseHz(val) { return (val !== null && isFinite(val)) ? val : null; }
-    let h1 = parseHz(hz_s1_val); let h2 = parseHz(hz_s2_val); let h3 = parseHz(hz_s3_val);
-    if (showS1 && h1 !== null) validHz.push(h1);
-    if (showS2 && h2 !== null) validHz.push(h2);
-    if (showS3 && h3 !== null) validHz.push(h3);
-    
-    let avgHz = null;
-    if (validHz.length > 0) {
-        avgHz = validHz.reduce((a, b) => a + b, 0) / validHz.length;
+    if(showAllSegments){
+        if(s1_o_us > 0 && s2_o_us > s1_o_us) c1_s1s2 = s2_o_us - s1_o_us; else if(s1_o_us > 0 && s2_o_us > 0) errors.push("C1: S2 open before S1 or S2 open not detected."); // Adjusted
+        if(s2_o_us > 0 && s3_o_us > s2_o_us) c1_s2s3 = s3_o_us - s2_o_us; else if(s2_o_us > 0 && s3_o_us > 0) errors.push("C1: S3 open before S2 or S3 open not detected."); // Adjusted
+        if(s1_c_us > 0 && s2_c_us > s1_c_us) c2_s1s2 = s2_c_us - s1_c_us; else if(s1_c_us > 0 && s2_c_us > 0) errors.push("C2: S2 close before S1 or S2 close not detected."); // Adjusted
+        if(s2_c_us > 0 && s3_c_us > s2_c_us) c2_s2s3 = s3_c_us - s2_c_us; else if(s2_c_us > 0 && s3_c_us > 0) errors.push("C2: S3 close before S2 or S3 close not detected."); // Adjusted
     }
-    setText('hz_avg', avgHz, 2, ' Hz');
-    
-    // --- 5. Curtain Travel Times ---
-    let c1_s1s2_us = 0, c1_s2s3_us = 0, c1_s1s3_us = 0;
-    let c2_s1s2_us = 0, c2_s2s3_us = 0, c2_s1s3_us = 0;
 
-    if (showTotalTravel) { // S1-S3 calculations
-        if (s1_o_us > 0 && s3_o_us > s1_o_us) c1_s1s3_us = s3_o_us - s1_o_us;
-        else if (s1_o_us > 0 && s3_o_us > 0 && s1_o_us !== s3_o_us) errors.push("C1: S3 open not after S1 open for total travel.");
-        
-        if (s1_c_us > 0 && s3_c_us > s1_c_us) c2_s1s3_us = s3_c_us - s1_c_us;
-        else if (s1_c_us > 0 && s3_c_us > 0 && s1_c_us !== s3_c_us) errors.push("C2: S3 close not after S1 close for total travel.");
+    const toScaledMs = (us) => (us > 0) ? (us * timeScalingFactor / 1000.0) : null;
+    const c1s1s2t = toScaledMs(c1_s1s2), c1s2s3t = toScaledMs(c1_s2s3), c1s1s3t = toScaledMs(c1_s1s3);
+    const c2s1s2t = toScaledMs(c2_s1s2), c2s2s3t = toScaledMs(c2_s2s3), c2s1s3t = toScaledMs(c2_s1s3);
+     if (DOM.ct_c1_s1s2_time) setText('ct_c1_s1s2_time', showAllSegments ? c1s1s2t : null, 3, ' ms');
+     if (DOM.ct_c1_s2s3_time) setText('ct_c1_s2s3_time', showAllSegments ? c1s2s3t : null, 3, ' ms');
+     if (DOM.ct_c1_total_time) setText('ct_c1_total_time', showTotalTravel ? c1s1s3t : null, 3, ' ms');
+    if(DOM.ct_c1_intra_pct_var) if(showAllSegments) calculateAndDisplayComparison(c1s1s2t, c1s2s3t, 'ct_c1_intra_pct_var'); else setText('ct_c1_intra_pct_var', '---');
+     if (DOM.ct_c2_s1s2_time) setText('ct_c2_s1s2_time', showAllSegments ? c2s1s2t : null, 3, ' ms');
+     if (DOM.ct_c2_s2s3_time) setText('ct_c2_s2s3_time', showAllSegments ? c2s2s3t : null, 3, ' ms');
+     if (DOM.ct_c2_total_time) setText('ct_c2_total_time', showTotalTravel ? c2s1s3t : null, 3, ' ms');
+    if(DOM.ct_c2_intra_pct_var) if(showAllSegments) calculateAndDisplayComparison(c2s1s2t, c2s2s3t, 'ct_c2_intra_pct_var'); else setText('ct_c2_intra_pct_var', '---');
+    if(showAllSegments){
+        if(DOM.ct_c1c2_s1s2_compare_pct) calculateAndDisplayComparison(c1s1s2t, c2s1s2t, 'ct_c1c2_s1s2_compare_pct');
+        if(DOM.ct_c1c2_s2s3_compare_pct) calculateAndDisplayComparison(c1s2s3t, c2s2s3t, 'ct_c1c2_s2s3_compare_pct');
+    } else { if(DOM.ct_c1c2_s1s2_compare_pct) setText('ct_c1c2_s1s2_compare_pct', '---'); if(DOM.ct_c1c2_s2s3_compare_pct) setText('ct_c1c2_s2s3_compare_pct', '---'); }
+    if(DOM.ct_c1c2_total_compare_pct) if(showTotalTravel) calculateAndDisplayComparison(c1s1s3t, c2s1s3t, 'ct_c1c2_total_compare_pct'); else setText('ct_c1c2_total_compare_pct', '---');
+
+    const frameHeightMm = getConfigValue('calibrationTargetDistanceConfig', null);
+    let fullOpenDurMs = null;
+    // Calculate full open duration: Exposure - Curtain Travel (total)
+    // This requires both average exposure and total curtain travel
+    if (avgExpMs != null && c1s1s3t != null && c1s1s3t > 0) {
+        fullOpenDurMs = Math.max(0, avgExpMs - c1s1s3t);
+    } else if (avgExpMs == null && (showS1||showS2||showS3)) { // Don't error if no sensors are active
+         const expErrors = errors.filter(e => e.includes("Exp")).length;
+         if (expErrors === 0) errors.push("Full Open: Avg Exp unavailable.");
+    } else if (avgExpMs != null && showTotalTravel && (c1s1s3t == null || c1s1s3t <= 0)) {
+         const c1TotalErrors = errors.filter(e => e.includes("C1 Total")).length;
+         if (c1TotalErrors === 0) errors.push("Full Open: C1 Total Travel invalid or not detected.");
     }
-    if (showAllSegments) { // S1-S2 and S2-S3 calculations
-        if (s1_o_us > 0 && s2_o_us > s1_o_us) c1_s1s2_us = s2_o_us - s1_o_us;
-        else if (s1_o_us > 0 && s2_o_us > 0 && s1_o_us !== s2_o_us) errors.push("C1: S2 open not after S1 open for segment.");
-        
-        if (s2_o_us > 0 && s3_o_us > s2_o_us) c1_s2s3_us = s3_o_us - s2_o_us;
-        else if (s2_o_us > 0 && s3_o_us > 0 && s2_o_us !== s3_o_us) errors.push("C1: S3 open not after S2 open for segment.");
-        
-        if (s1_c_us > 0 && s2_c_us > s1_c_us) c2_s1s2_us = s2_c_us - s1_c_us;
-        else if (s1_c_us > 0 && s2_c_us > 0 && s1_c_us !== s2_c_us) errors.push("C2: S2 close not after S1 close for segment.");
-        
-        if (s2_c_us > 0 && s3_c_us > s2_c_us) c2_s2s3_us = s3_c_us - s2_c_us;
-        else if (s2_c_us > 0 && s3_c_us > 0 && s2_c_us !== s3_c_us) errors.push("C2: S3 close not after S2 close for segment.");
+     if (DOM.open_time_duration_ms) setText('open_time_duration_ms', fullOpenDurMs, (fullOpenDurMs === 0 ? 2:3), ' ms');
+
+
+    // Calculate effective slit width: Frame Height / Total Curtain Travel * Exposure Time (average)
+    let effSlitMm = null;
+    if (frameHeightMm == null || frameHeightMm <= 0) {
+        const frameHeightErrors = errors.filter(e => e.includes("Frame Height")).length;
+        if(frameHeightErrors === 0) errors.push("Slit: Frame Height invalid (Config)."); // Add specific note about config
+    } else if (avgExpMs == null || avgExpMs <= 0) { // Exposure must be positive
+        const expErrors = errors.filter(e => e.includes("Exp")).length;
+        if((showS1||showS2||showS3) && expErrors === 0) errors.push("Slit: Avg Exp invalid.");
+    } else if (c1s1s3t == null || c1s1s3t <= 0) { // Curtain travel must be positive
+        const c1TotalErrors = errors.filter(e => e.includes("C1 Total")).length;
+        if(showTotalTravel && avgExpMs > 0 && c1TotalErrors === 0) errors.push("Slit: C1 Total Travel invalid or not detected.");
     }
-    
-    const toScaledMs = (val_us) => (val_us > 0) ? (val_us * timeScalingFactor / 1000.0) : null;
+    else {
+        // If Full Open Duration is 0 or less (slit scan), calculate based on travel speed and exposure
+         const currentFullOpenDur = Math.max(0, avgExpMs - c1s1s3t);
+         if (currentFullOpenDur > 0) {
+             // Slit is fully open. Indicate this instead of a slit width.
+             // Maybe display "Full Frame" or similar? For now, setting to null.
+             effSlitMm = null;
+             if (avgExpMs > 0 && c1s1s3t > 0) errors.push(`Slit: Full open (${currentFullOpenDur.toFixed(3)} ms), slit width calculation not standard.`); // Adjusted error message
+         } else {
+              // Slit scan
+             if (c1s1s3t > 0) { // Ensure travel time is valid and positive
+                 effSlitMm = (frameHeightMm / c1s1s3t) * avgExpMs;
+                 if (!isFinite(effSlitMm) || effSlitMm < 0) { effSlitMm = null; errors.push("Slit: Calculated slit width invalid."); }
+             } else {
+                  // Travel time is invalid, cannot calculate slit width
+                   const c1TotalErrors = errors.filter(e => e.includes("C1 Total")).length;
+                   if(c1TotalErrors === 0) errors.push("Slit: C1 Total Travel invalid or not detected.");
+             }
+         }
+    }
+    if (DOM.slit_width_mm) setText('slit_width_mm', showTotalTravel ? effSlitMm : null, 2, (isFinite(effSlitMm) ? ' mm':''));
 
-    const c1_s1s2_scaled_ms = toScaledMs(c1_s1s2_us);
-    const c1_s2s3_scaled_ms = toScaledMs(c1_s2s3_us);
-    const c1_total_scaled_ms = toScaledMs(c1_s1s3_us); 
-    setText('ct_c1_s1s2_time', showAllSegments ? c1_s1s2_scaled_ms : null, 3, ' ms');
-    setText('ct_c1_s2s3_time', showAllSegments ? c1_s2s3_scaled_ms : null, 3, ' ms');
-    setText('ct_c1_total_time', showTotalTravel ? c1_total_scaled_ms : null, 3, ' ms');
-    if (showAllSegments) calculateAndDisplayComparison(c1_s1s2_scaled_ms, c1_s2s3_scaled_ms, 'ct_c1_intra_pct_var');
-    else setText('ct_c1_intra_pct_var', null);
 
-    const c2_s1s2_scaled_ms = toScaledMs(c2_s1s2_us);
-    const c2_s2s3_scaled_ms = toScaledMs(c2_s2s3_us);
-    const c2_total_scaled_ms = toScaledMs(c2_s1s3_us);
-    setText('ct_c2_s1s2_time', showAllSegments ? c2_s1s2_scaled_ms : null, 3, ' ms');
-    setText('ct_c2_s2s3_time', showAllSegments ? c2_s2s3_scaled_ms : null, 3, ' ms');
-    setText('ct_c2_total_time', showTotalTravel ? c2_total_scaled_ms : null, 3, ' ms');
-    if (showAllSegments) calculateAndDisplayComparison(c2_s1s2_scaled_ms, c2_s2s3_scaled_ms, 'ct_c2_intra_pct_var');
-    else setText('ct_c2_intra_pct_var', null);
-
-    if (showAllSegments) {
-        calculateAndDisplayComparison(c1_s1s2_scaled_ms, c2_s1s2_scaled_ms, 'ct_c1c2_s1s2_compare_pct');
-        calculateAndDisplayComparison(c1_s2s3_scaled_ms, c2_s2s3_scaled_ms, 'ct_c1c2_s2s3_compare_pct');
+    // Calculate exposure variation percentage
+    let expVarPct = null;
+    if (validExposuresMs.length > 1 && avgExpMs != null && avgExpMs > 0) {
+        const stdDev = Math.sqrt(validExposuresMs.reduce((s,e)=>s+Math.pow(e-avgExpMs,2),0)/validExposuresMs.length);
+        expVarPct = (stdDev / avgExpMs) * 100.0;
+         if(!isFinite(expVarPct)) expVarPct = null; // Handle potential division by zero or other issues
+    } else if (validExposuresMs.length > 0 && (avgExpMs == null || avgExpMs <= 0)) { // Check for invalid/zero average exposure
+         const expErrors = errors.filter(e => e.includes("Exp")).length;
+         if (expErrors === 0) errors.push("Exp Var: Average exposure invalid or zero.");
+    } else if (validExposuresMs.length <= 1 && (showS1 || showS2 || showS3)) {
+         // Only 0 or 1 sensor has valid exposure data, variance is not meaningful
+         if (DOM.exp_var_pct) setText('exp_var_pct', 'N/A'); // Set explicitly to N/A instead of null/---
     } else {
-        setText('ct_c1c2_s1s2_compare_pct', null);
-        setText('ct_c1c2_s2s3_compare_pct', null);
-    }
-    if (showTotalTravel) {
-        calculateAndDisplayComparison(c1_total_scaled_ms, c2_total_scaled_ms, 'ct_c1c2_total_compare_pct');
-    } else {
-         setText('ct_c1c2_total_compare_pct', null);
+         if (DOM.exp_var_pct) setText('exp_var_pct', '---'); // Default if no sensors are shown or no valid data at all
     }
 
-// --- 6. Full Open Duration & Slit Width ---
-    const frameHeightMm = getConfigValue('calibrationTargetDistanceConfig', null); // Get configured frame height, default to null
+    // If expVarPct was calculated, set it, otherwise rely on previous logic (N/A or ---)
+    if (expVarPct !== null && isFinite(expVarPct)) {
+        if (DOM.exp_var_pct) setText('exp_var_pct', expVarPct, 2, ' %');
+    }
 
-    let fullOpenDurationMs = null;
-    // Calculate Full Open Duration if possible
-    // Prerequisites: avgExpMs is a valid number, c1_total_scaled_ms is a positive number.
-    if (avgExpMs !== null && typeof avgExpMs === 'number' &&
-        c1_total_scaled_ms !== null && typeof c1_total_scaled_ms === 'number' && c1_total_scaled_ms > 0) {
-        fullOpenDurationMs = Math.max(0, avgExpMs - c1_total_scaled_ms);
-    } else {
-        // Add errors if Full Open Duration cannot be calculated due to missing/invalid components
-        if (avgExpMs === null && (showS1 || showS2 || showS3)) { // avgExpMs is required
-            // Avoid adding duplicate error if already present from other calculations
-            if (!errors.some(e => e.includes("Average Exposure Time"))) {
-                errors.push("Full Open Duration: Average Exposure Time is unavailable.");
-            }
-        } else if (avgExpMs !== null && showTotalTravel && (c1_total_scaled_ms === null || c1_total_scaled_ms <= 0)) {
-            // c1_total_scaled_ms is required if showTotalTravel is true and avgExpMs is present
-            if (!errors.some(e => e.includes("C1 Total Travel Time"))) {
-                 errors.push("Full Open Duration: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
-            }
+
+    // Display errors
+    if (DOM.errorDisplay) {
+        if (errors.length > 0) {
+             DOM.errorDisplay.innerHTML = '<p class="error-message">CLIENT CALC ERROR:<br>' + errors.join('<br>') + '</p>';
+        } else {
+             DOM.errorDisplay.innerHTML = ''; // Clear errors if no issues found
         }
     }
-    // Display Full Open Duration. Show 0.00 for 0ms, otherwise default (3dp).
-    setText('open_time_duration_ms', fullOpenDurationMs, (fullOpenDurationMs === 0 ? 2 : 3), ' ms');
-
-    let effectiveSlitWidthMm = null;
-    // Calculate Effective Slit Width if possible
-    // Prerequisites: frameHeightMm > 0, avgExpMs >= 0, c1_total_scaled_ms > 0.
-    if (frameHeightMm === null || typeof frameHeightMm !== 'number' || frameHeightMm <= 0) {
-        if (!errors.some(e => e.includes("Frame Height"))) {
-            errors.push("Slit Width: Frame Height (Actual S1-S3 Dist.) must be positive and configured.");
-        }
-    } else if (avgExpMs === null || typeof avgExpMs !== 'number' || avgExpMs < 0) {
-        // Only push error if exposure data was generally expected for the current mode
-        if (showS1 || showS2 || showS3) {
-            if (!errors.some(e => e.includes("Average Exposure Time"))) {
-                errors.push("Slit Width: Average Exposure Time is invalid or unavailable.");
-            }
-        }
-    } else if (c1_total_scaled_ms === null || typeof c1_total_scaled_ms !== 'number' || c1_total_scaled_ms <= 0) {
-        // Only push error if C1 travel time was expected for the current mode and avgExpMs is valid
-        if (showTotalTravel && avgExpMs !== null) {
-             if (!errors.some(e => e.includes("C1 Total Travel Time"))) {
-                errors.push("Slit Width: C1 Total Travel Time (scaled) is zero, negative, or unavailable.");
-            }
-        }
-    } else {
-        // All direct inputs (frameHeightMm, avgExpMs, c1_total_scaled_ms) are valid for slit width calculation.
-        // We can use the already calculated fullOpenDurationMs or re-derive its logic here for clarity.
-        // For consistency, let's use the logic for full open duration directly:
-        const currentFullOpenDuration = Math.max(0, avgExpMs - c1_total_scaled_ms);
-
-        if (currentFullOpenDuration > 0) {
-            // Frame was fully open. Effective slit width is the full frame height.
-            effectiveSlitWidthMm = null;
-        } else { // currentFullOpenDuration is 0 (i.e., avgExpMs <= c1_total_scaled_ms)
-            // Frame was not fully open, or exactly at the boundary.
-            const calculatedSlitWidth = (frameHeightMm / c1_total_scaled_ms) * avgExpMs;
-            // avgExpMs can be 0, resulting in 0 slit width.
-            // Since avgExpMs <= c1_total_scaled_ms, calculatedSlitWidth will be <= frameHeightMm.
-            effectiveSlitWidthMm = Math.max(0, calculatedSlitWidth); // Ensure non-negative.
-        }
-    }
-    setText('slit_width_mm', effectiveSlitWidthMm, 2, ' mm');
 
 
-    // --- 7. Exposure Variation % ---
-    let exp_var_pct = null;
-    if (validExposuresMs.length > 1 && avgExpMs !== null && avgExpMs > 0) {
-        let sumOfSquares = 0;
-        validExposuresMs.forEach(exp => { sumOfSquares += Math.pow(exp - avgExpMs, 2); });
-        const stdDev = Math.sqrt(sumOfSquares / validExposuresMs.length);
-        exp_var_pct = (stdDev / avgExpMs) * 100.0;
-    }
-    // Pass unit with leading space for consistency
-    setText('exp_var_pct', exp_var_pct, 2, (exp_var_pct === null || !isFinite(exp_var_pct)) ? '' : ' %');
+    // Add result to staging area if data was valid and not just an error packet
+    // Check if any primary sensor data is present to decide if it's a valid measurement
+    const hasMeasurementData = (showS1 && (s1_o_us != null && s1_o_us > 0)) ||
+                               (showS2 && (s2_o_us != null && s2_o_us > 0)) ||
+                               (showS3 && (s3_o_us != null && s3_o_us > 0)); // Check for at least one valid *open* timestamp
 
-
-    // --- Display errors ---
-    if (DOM.errorDisplay && errors.length > 0) {
-        var errorHtml = DOM.errorDisplay.innerHTML; 
-        if (!errorHtml.includes("Calculation Issues")) errorHtml = ""; 
-        errorHtml += '<p class="error-message">CLIENT CALC ERROR:</p><ul>';
-        errors.forEach(function(err) { errorHtml += '<li class="error-message">' + err + '</li>'; });
-        errorHtml += '</ul>';
-        DOM.errorDisplay.innerHTML = errorHtml;
-    }
-    
-    if (typeof addResultToLog === 'function' && 
-        (s1_o_us || s1_c_us || s2_o_us || s2_c_us || s3_o_us || s3_c_us) ) { 
-         addResultToLog();
+    if (typeof addResultToStagingArea === 'function' && hasMeasurementData && errors.length === 0) {
+        addResultToStagingArea();
+    } else if (errors.length > 0) {
+        // Don't add to staging if there were calculation errors, but log if data existed
+         if (hasMeasurementData) {
+            console.warn("Data received but client calculation errors occurred. Not adding to staging.", errors);
+            // Optional: Log the raw data with errors somewhere else if needed
+         } else {
+             console.warn("Data packet received but contained no valid timestamps or had device errors.", rawData);
+         }
     }
 }
 
-
 function updateEsp32Status(isConnected, message, lastSeenTimestamp) {
-    if (DOM.esp32ConnectionStatus) {
-        DOM.esp32ConnectionStatus.textContent = message || (isConnected ? "Connected" : "Disconnected / Error");
-        DOM.esp32ConnectionStatus.className = 'data-value '; 
-        if (isConnected) {
-            DOM.esp32ConnectionStatus.classList.add('esp32-connected');
-        } else {
-             DOM.esp32ConnectionStatus.classList.add('esp32-disconnected');
-        }
-    }
-    if (DOM.lastUpdate) {
-        if (lastSeenTimestamp && isConnected) { 
-            const updateTime = new Date(lastSeenTimestamp);
-            DOM.lastUpdate.textContent = updateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        } else if (!isConnected) {
-             DOM.lastUpdate.textContent = 'N/A';
-        }
+     if (!DOM.esp32ConnectionStatus || !DOM.lastUpdate) { console.error("ESP32 status elements not found."); return; }
+    DOM.esp32ConnectionStatus.textContent = message;
+    DOM.esp32ConnectionStatus.className = 'data-value ' + (isConnected ? 'esp32-connected' : 'esp32-disconnected');
+    if (lastSeenTimestamp) {
+        DOM.lastUpdate.textContent = new Date(lastSeenTimestamp).toLocaleTimeString();
+    } else {
+        DOM.lastUpdate.textContent = 'N/A';
     }
 }
 
 function updateEspModeDisplay(modeStringFromServer) {
-    if (modeStringFromServer && DOM.sensorModeSelector) {
-        let modeValueToSelect = "0"; 
-        switch (String(modeStringFromServer).toUpperCase()) {
-            case "ALL": modeValueToSelect = "0"; break;
-            case "OUTER": modeValueToSelect = "1"; break;
-            case "INNER": modeValueToSelect = "2"; break;
-            case "UNKNOWN": 
-            default: modeValueToSelect = "0"; break;
+     if (!DOM.sensorModeSelector) { console.error("Mode selector not found for display update."); return; }
+    const mode = modeStringFromServer ? String(modeStringFromServer).toUpperCase() : "UNKNOWN";
+    let matchedOption = null;
+    for (let i = 0; i < DOM.sensorModeSelector.options.length; i++) {
+        const option = DOM.sensorModeSelector.options[i];
+        if (option.text.toUpperCase().startsWith(mode) || option.value === mode) {
+            matchedOption = option;
+            break;
         }
-        if (DOM.sensorModeSelector.value !== modeValueToSelect) {
-            DOM.sensorModeSelector.value = modeValueToSelect;
-        }
+    }
+    if (matchedOption && matchedOption.selected !== true) {
+        matchedOption.selected = true;
+        // Only update system status if the mode actually changed from what's currently selected
+         if (typeof updateSystemStatus === 'function' && DOM.sensorModeSelector.options[DOM.sensorModeSelector.selectedIndex]?.text.toUpperCase() !== matchedOption.text.toUpperCase()) {
+             updateSystemStatus(`Device mode is: ${matchedOption.text}`);
+         }
+         console.log(`Device mode is: ${matchedOption.text}`); // Always log mode change
+    } else if (!matchedOption) {
+        if (typeof updateSystemStatus === 'function') updateSystemStatus(`Device reported unknown mode: ${modeStringFromServer || 'N/A'}`);
+         console.warn(`Device reported unknown mode: ${modeStringFromServer || 'N/A'}`);
     }
 }
